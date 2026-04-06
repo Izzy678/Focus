@@ -7,7 +7,7 @@ async function bootstrap() {
 
   // Enable CORS for frontend communication
   app.enableCors({
-    origin: ['http://localhost:6006', 'http://localhost:3000'],
+    origin: ['http://localhost:6006', 'http://localhost:3000', 'https://focus-web-xi.vercel.app'],
     credentials: true,
   });
 
