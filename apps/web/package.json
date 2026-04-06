@@ -10,6 +10,7 @@
     "pretty": "prettier --write ."
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.0.8",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
