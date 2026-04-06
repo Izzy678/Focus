@@ -1,19 +1,24 @@
 import type { Metadata } from 'next';
+
+import { AppProviders } from '@/components/providers/app-providers';
+
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Monorepo Starter',
-  description: 'A production-ready monorepo starter',
+  title: 'Focus',
+  description: 'Time-driven daily execution',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }
