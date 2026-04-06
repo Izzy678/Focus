@@ -204,24 +204,26 @@ function PlanPageContent() {
   );
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_320px]">
-      <section className="space-y-6">
+    <div className="mx-auto grid max-w-6xl gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">
+      <section className="space-y-5 sm:space-y-6">
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
             Architecture Phase
           </p>
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             Daily Execution Plan
           </h1>
         </div>
 
         <form
           onSubmit={onCreateTask}
-          className="rounded-2xl border border-border bg-card p-6 md:p-8"
+          className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8"
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-4xl font-extrabold tracking-tight text-foreground">Focus.</h2>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+                Focus.
+              </h2>
               <p className="mt-1 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
                 {isEditing
                   ? 'Editing upcoming task'
@@ -297,7 +299,7 @@ function PlanPageContent() {
                 Clear Goals
               </p>
               {draft.goals.map((goal, index) => (
-                <div key={`goal-${index}`} className="flex gap-2">
+                <div key={`goal-${index}`} className="flex flex-col gap-2 sm:flex-row">
                   <input
                     value={goal}
                     onChange={(event) =>
@@ -324,7 +326,7 @@ function PlanPageContent() {
                             : current.goals.filter((_, goalIndex) => goalIndex !== index),
                       }))
                     }
-                    className="h-12 rounded-md border border-border px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground disabled:opacity-50"
+                    className="h-12 shrink-0 rounded-md border border-border px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground disabled:opacity-50 sm:w-auto"
                   >
                     Remove
                   </button>
@@ -423,19 +425,21 @@ function PlanPageContent() {
         </form>
       </section>
 
-      <aside className="h-fit rounded-2xl border border-slate-700/80 bg-slate-900 p-6 text-slate-100 dark:border-border dark:bg-card dark:text-card-foreground">
+      <aside className="h-fit rounded-2xl border border-slate-700/80 bg-slate-900 p-4 text-slate-100 dark:border-border dark:bg-card dark:text-card-foreground sm:p-6">
         <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-200 dark:text-primary">
           Focus Engine
         </p>
-        <h2 className="mt-4 text-3xl font-extrabold tracking-tight">Daily Load Factor</h2>
+        <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:mt-4 sm:text-3xl">
+          Daily Load Factor
+        </h2>
         <p className="mt-4 text-sm leading-6 text-slate-300 dark:text-muted-foreground">
           Keep the plan realistic and weighted toward deep work outcomes. View your sequence
           on Timeline.
         </p>
-        <div className="mt-8">
-          <p className="text-6xl font-extrabold tracking-tight">
+        <div className="mt-6 sm:mt-8">
+          <p className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
             {loadingTotals ? '—' : hoursDisplay}
-            <span className="ml-2 text-2xl font-semibold text-slate-400 dark:text-muted-foreground">
+            <span className="ml-1.5 text-xl font-semibold text-slate-400 dark:text-muted-foreground sm:ml-2 sm:text-2xl">
               HRS
             </span>
           </p>

@@ -39,12 +39,12 @@ export default function SummaryPage() {
   }, [summary]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
+    <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
           Daily Performance Debrief
         </p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl">
           Execution review for today
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export default function SummaryPage() {
 
       {summary ? (
         <>
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
             <SummaryMetric label="Planned" value={formatMinutesToClock(summary.plannedMinutes)} />
             <SummaryMetric label="Actual" value={formatMinutesToClock(summary.actualMinutes)} />
             <SummaryMetric
@@ -66,14 +66,57 @@ export default function SummaryPage() {
             <SummaryMetric label="Efficiency" value={`${efficiency}%`} />
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-xl font-extrabold tracking-tight">Task breakdown</h2>
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+            <h2 className="text-lg font-extrabold tracking-tight sm:text-xl">Task breakdown</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Total time beyond planned windows:{' '}
               {formatMinutesToClock(summary.totalOverrunMinutes)}
             </p>
 
-            <div className="mt-6 overflow-x-auto">
+            <div className="mt-6 space-y-3 md:hidden">
+              {summary.breakdown.map((row) => (
+                <article
+                  key={row.taskId}
+                  className="rounded-xl border border-border/80 bg-background/50 p-4 dark:bg-card/50"
+                >
+                  <p className="font-semibold leading-snug text-foreground">{row.title}</p>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Planned
+                      </dt>
+                      <dd className="mt-0.5 font-medium tabular-nums">
+                        {formatMinutesToClock(row.plannedMinutes)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Actual
+                      </dt>
+                      <dd className="mt-0.5 font-medium tabular-nums">
+                        {formatMinutesToClock(row.actualMinutes)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Status
+                      </dt>
+                      <dd className="mt-0.5 uppercase">{row.status.replace('_', ' ')}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Debrief
+                      </dt>
+                      <dd className="mt-0.5 uppercase">
+                        {row.debriefPending ? 'Pending' : 'Done'}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-6 hidden overflow-x-auto md:block">
               <table className="w-full min-w-[520px] text-left">
                 <thead>
                   <tr className="border-b border-border text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -108,9 +151,13 @@ export default function SummaryPage() {
 
 function SummaryMetric({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded-xl border border-border bg-card p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-      <p className="mt-2 text-3xl font-extrabold tracking-tight">{value}</p>
+    <article className="rounded-xl border border-border bg-card p-3 sm:p-5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+        {label}
+      </p>
+      <p className="mt-1 text-2xl font-extrabold tracking-tight tabular-nums sm:mt-2 sm:text-3xl">
+        {value}
+      </p>
     </article>
   );
 }

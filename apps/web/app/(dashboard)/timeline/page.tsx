@@ -242,12 +242,12 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10">
-      <header className="space-y-2 border-b border-border/60 pb-6">
-        <p className="text-sm font-bold uppercase tracking-[0.28em] text-foreground">
+    <div className="mx-auto max-w-6xl space-y-8 sm:space-y-10">
+      <header className="space-y-2 border-b border-border/60 pb-4 sm:pb-6">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-foreground sm:text-sm sm:tracking-[0.28em]">
           {formatTodayHeader(now)}
         </p>
-        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+        <p className="max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
           Your timeline, live execution, and execution path below are all for{' '}
           <span className="font-semibold text-foreground">today</span> only — synced with
           your scheduled tasks for this calendar day.
@@ -255,7 +255,7 @@ export default function TimelinePage() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-primary/25 bg-card shadow-sm">
-        <div className="border-l-[6px] border-l-primary bg-primary/[0.04] p-6 md:p-8">
+        <div className="border-l-[6px] border-l-primary bg-primary/[0.04] p-4 sm:p-6 md:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
             Live Execution
           </p>
@@ -265,7 +265,7 @@ export default function TimelinePage() {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   {currentTask ? 'You should be doing' : 'Up next'}
                 </p>
-                <h1 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">
+                <h1 className="mt-2 text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl lg:text-4xl">
                   {liveTask.title}
                 </h1>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -325,7 +325,7 @@ export default function TimelinePage() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
                   {liveExecutionMetrics.timerLabel}
                 </p>
-                <p className="mt-3 font-mono text-4xl font-black tracking-tight text-foreground tabular-nums md:text-5xl">
+                <p className="mt-3 font-mono text-2xl font-black tracking-tight text-foreground tabular-nums sm:text-3xl md:text-4xl lg:text-5xl">
                   {remainingHMS}
                 </p>
               </div>
@@ -352,17 +352,17 @@ export default function TimelinePage() {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background/80 p-3 dark:bg-card/90"
               >
                 <p className="text-sm font-semibold text-foreground">{task.title}</p>
-                <div className="flex gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   <button
                     type="button"
-                    className="rounded-md border border-border px-3 py-1 text-xs font-bold uppercase tracking-wider"
+                    className="min-h-10 rounded-md border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider sm:py-1"
                     onClick={() => onDebrief(task.id, 'completed')}
                   >
                     Mark Completed
                   </button>
                   <button
                     type="button"
-                    className="rounded-md border border-border px-3 py-1 text-xs font-bold uppercase tracking-wider"
+                    className="min-h-10 rounded-md border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider sm:py-1"
                     onClick={() => onDebrief(task.id, 'incomplete')}
                   >
                     Mark Incomplete
@@ -385,11 +385,11 @@ export default function TimelinePage() {
         <div className="relative">
           {tasks.length > 0 ? (
             <div
-              className="pointer-events-none absolute left-5 top-10 bottom-10 z-0 w-px bg-border"
+              className="pointer-events-none absolute left-[18px] top-9 bottom-9 z-0 w-px bg-border sm:left-5 sm:top-10 sm:bottom-10"
               aria-hidden
             />
           ) : null}
-          <ul className="relative z-[1] list-none space-y-3 p-0">
+          <ul className="relative z-[1] list-none space-y-2 p-0 sm:space-y-3">
             {tasks.map((task) => {
               const start = new Date(task.scheduledStart);
               const end = new Date(task.scheduledEnd);
@@ -408,13 +408,13 @@ export default function TimelinePage() {
                 !task.debriefPending;
 
               return (
-                <li key={task.id} className="flex gap-4">
-                  <div className="flex shrink-0 flex-col items-center pt-1">
+                <li key={task.id} className="flex gap-2 sm:gap-4">
+                  <div className="flex w-9 shrink-0 flex-col items-center pt-1 sm:w-auto">
                     <ExecutionPathNode status={task.status} category={task.category} />
                   </div>
                   <article
                     className={cn(
-                      'min-w-0 flex-1 rounded-xl border bg-card p-4',
+                      'min-w-0 flex-1 rounded-xl border bg-card p-3 sm:p-4',
                       isCurrent &&
                         'border-primary/50 border-l-4 border-l-primary bg-primary/[0.06] shadow-sm',
                       task.status === 'completed' && 'border-border opacity-90',
@@ -439,7 +439,7 @@ export default function TimelinePage() {
                     </div>
                     <h3
                       className={cn(
-                        'text-xl font-extrabold',
+                        'text-base font-extrabold sm:text-lg md:text-xl',
                         task.status === 'completed' && 'text-muted-foreground',
                       )}
                     >
@@ -492,7 +492,7 @@ export default function TimelinePage() {
         ) : null}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <MetricCard label="Focus Efficiency" value={`${tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0}%`} />
         <MetricCard label="Deep Work Today" value={formatMinutesToClock(completedMinutes)} />
         <MetricCard label="Major Tasks Done" value={`${completedTasks.length} / ${tasks.length || 0}`} />
@@ -503,9 +503,13 @@ export default function TimelinePage() {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-      <p className="mt-3 text-3xl font-extrabold tracking-tight">{value}</p>
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums sm:mt-3 sm:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }

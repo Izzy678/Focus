@@ -22,12 +22,14 @@ export function AuthSplitLayout({
         {leftPanel}
       </section>
 
-      <section className="auth-right-panel relative flex min-h-screen w-full flex-1 items-center justify-center px-6 py-12 md:px-12 lg:px-20">
-        <div className="absolute right-6 top-8 z-10 md:right-12 lg:right-20">
+      <section className="auth-right-panel relative flex min-h-screen w-full flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-12 md:px-12 lg:px-20">
+        <div className="absolute right-4 top-6 z-10 sm:right-6 sm:top-8 md:right-12 lg:right-20">
           <ThemeToggle />
         </div>
-        {mobileBrand ? <div className="absolute left-6 top-8 md:hidden">{mobileBrand}</div> : null}
-        <div className="w-full max-w-md">{rightPanel}</div>
+        {mobileBrand ? (
+          <div className="absolute left-4 top-6 md:hidden sm:left-6 sm:top-8">{mobileBrand}</div>
+        ) : null}
+        <div className="w-full max-w-md pt-10 md:pt-0">{rightPanel}</div>
       </section>
     </main>
   );

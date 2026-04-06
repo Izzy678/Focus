@@ -177,13 +177,13 @@ export default function FocusPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
       {task.status !== 'in_progress' ? (
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Scheduled Session
           </p>
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight">{task.title}</h2>
+          <h2 className="mt-3 text-xl font-extrabold tracking-tight sm:text-2xl">{task.title}</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             This task starts at{' '}
             {new Date(task.scheduledStart).toLocaleTimeString([], {
@@ -196,13 +196,13 @@ export default function FocusPage() {
       ) : null}
 
       {task.status === 'in_progress' || showCompletion ? (
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 text-center">
-          <div className="mx-auto mb-8 h-72 w-72 rounded-full border-4 border-primary/30 p-8">
-            <div className="flex h-full items-center justify-center font-mono text-5xl font-black tracking-tight text-foreground tabular-nums md:text-6xl">
+        <section className="relative overflow-hidden rounded-2xl border border-border bg-card px-4 py-8 text-center sm:rounded-3xl sm:p-10">
+          <div className="mx-auto mb-6 aspect-square w-full max-w-[min(17rem,85vw)] rounded-full border-4 border-primary/30 p-3 sm:mb-8 sm:max-w-[18rem] sm:p-8 md:max-w-[20rem]">
+            <div className="flex h-full w-full items-center justify-center font-mono text-3xl font-black tracking-tight text-foreground tabular-nums sm:text-4xl md:text-5xl lg:text-6xl">
               {formatSecondsAsHMS(remainingSeconds)}
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">{task.title}</h1>
+          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl">{task.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {task.goals.length ? task.goals.join(' • ') : 'No goals set'}
           </p>
@@ -224,11 +224,11 @@ export default function FocusPage() {
       ) : null}
 
       {showCompletion ? (
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Session Concluded
           </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight">Time&apos;s up.</h2>
+          <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">Time&apos;s up.</h2>
           <p className="mt-1 text-muted-foreground">Did you complete this task?</p>
 
           <button
