@@ -70,14 +70,6 @@ function SidebarNav({ pathname, onNavigate, showClose }: SidebarNavProps) {
           );
         })}
       </nav>
-
-      <Link
-        href="/plan"
-        onClick={onNavigate}
-        className="mt-auto inline-flex h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90"
-      >
-        New Task
-      </Link>
     </>
   );
 }
