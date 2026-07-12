@@ -45,6 +45,15 @@ export type Summary = {
   }>;
 };
 
+export type SummaryDay = {
+  date: string;
+  plannedMinutes: number;
+  actualMinutes: number;
+  totalTasks: number;
+  completedCount: number;
+  efficiency: number;
+};
+
 type GetToken = () => Promise<string | null>;
 type TaskStreamEvent = {
   type: 'tasks_updated' | 'ping';
@@ -199,6 +208,20 @@ export function submitTaskDebrief(
 
 export function fetchTodaySummary(getToken: GetToken) {
   return request<Summary>('/summary/today', getToken);
+}
+
+export function fetchSummaryForDate(getToken: GetToken, date: string) {
+  return request<Summary>(
+    `/summary/date?date=${encodeURIComponent(date)}`,
+    getToken,
+  );
+}
+
+export function fetchSummaryDays(getToken: GetToken, limit = 30) {
+  return request<SummaryDay[]>(
+    `/summary/days?limit=${encodeURIComponent(String(limit))}`,
+    getToken,
+  );
 }
 
 export async function openTasksStream(
