@@ -66,15 +66,27 @@ export class TasksService {
   }
 
   async findToday(userId: string): Promise<TaskEntity[]> {
-    const tasks = await this.tasksRepository.find({
-      where: {
-        userId,
-        scheduledDate: this.todayKey(),
-      },
-      order: {
-        scheduledStart: 'ASC',
-      },
-    });
+    return this.findByDate(userId, this.todayKey());
+  }
+
+  async findByDate(userId: string, date: string): Promise<TaskEntity[]> {
+    const scheduledDate = this.assertDateKey(date);
+
+    // Only heal live windows when reading today — past days are historical.
+    if (scheduledDate === this.todayKey()) {
+      await this.runSchedulingTick();
+    }
+
+    // Compare as calendar text to avoid TypeORM/pg timezone shifts on `date` columns.
+    const tasks = await this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.userId = :userId', { userId })
+      .andWhere("to_char(task.scheduledDate, 'YYYY-MM-DD') = :scheduledDate", {
+        scheduledDate,
+      })
+      .orderBy('task.scheduledStart', 'ASC')
+      .getMany();
+
     return tasks.map((task) => this.hydrateTask(task));
   }
 
@@ -324,6 +336,18 @@ export class TasksService {
       totalOverrunMinutes,
       breakdown,
     };
+  }
+
+  private assertDateKey(date: string) {
+    const value = date?.trim();
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      throw new BadRequestException('date must be YYYY-MM-DD');
+    }
+    const parsed = new Date(`${value}T00:00:00.000Z`);
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+      throw new BadRequestException('date must be a valid calendar day');
+    }
+    return value;
   }
 
   private async findOwnedTask(userId: string, taskId: string) {
