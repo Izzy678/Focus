@@ -217,12 +217,48 @@ export class TasksService {
 
   async runSchedulingTick(now: Date = new Date()) {
     const changedUsers = new Set<string>();
+    const nowIso = now.toISOString();
 
+    // 1. End overdue in-progress tasks first so the next window can start in this same tick.
+    const endingTasks = await this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.status = :status', { status: TaskStatus.IN_PROGRESS })
+      .andWhere('task.scheduledEnd <= :now', { now: nowIso })
+      .getMany();
+
+    for (const task of endingTasks) {
+      this.finalizeActiveTime(task, task.scheduledEnd);
+      task.status = TaskStatus.INCOMPLETE;
+      task.endedAt = task.scheduledEnd;
+      task.debriefPending = true;
+      task.scheduleEndedAt = task.scheduledEnd;
+      await this.tasksRepository.save(task);
+      changedUsers.add(task.userId);
+    }
+
+    // 2. Mark missed not-started tasks whose windows already ended.
+    const missedTasks = await this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.status = :status', { status: TaskStatus.NOT_STARTED })
+      .andWhere('task.scheduledEnd <= :now', { now: nowIso })
+      .getMany();
+
+    for (const task of missedTasks) {
+      task.status = TaskStatus.INCOMPLETE;
+      task.startedAt = null;
+      task.endedAt = task.scheduledEnd;
+      task.debriefPending = true;
+      task.scheduleEndedAt = task.scheduledEnd;
+      await this.tasksRepository.save(task);
+      changedUsers.add(task.userId);
+    }
+
+    // 3. Auto-start tasks that are currently inside their scheduled window.
     const startableTasks = await this.tasksRepository
       .createQueryBuilder('task')
       .where('task.status = :status', { status: TaskStatus.NOT_STARTED })
-      .andWhere('task.scheduledStart <= :now', { now: now.toISOString() })
-      .andWhere('task.scheduledEnd > :now', { now: now.toISOString() })
+      .andWhere('task.scheduledStart <= :now', { now: nowIso })
+      .andWhere('task.scheduledEnd > :now', { now: nowIso })
       .orderBy('task.scheduledStart', 'ASC')
       .getMany();
 
@@ -241,38 +277,6 @@ export class TasksService {
       task.endedAt = null;
       task.debriefPending = false;
       task.scheduleEndedAt = null;
-      await this.tasksRepository.save(task);
-      changedUsers.add(task.userId);
-    }
-
-    const endingTasks = await this.tasksRepository
-      .createQueryBuilder('task')
-      .where('task.status = :status', { status: TaskStatus.IN_PROGRESS })
-      .andWhere('task.scheduledEnd <= :now', { now: now.toISOString() })
-      .getMany();
-
-    for (const task of endingTasks) {
-      this.finalizeActiveTime(task, task.scheduledEnd);
-      task.status = TaskStatus.INCOMPLETE;
-      task.endedAt = task.scheduledEnd;
-      task.debriefPending = true;
-      task.scheduleEndedAt = task.scheduledEnd;
-      await this.tasksRepository.save(task);
-      changedUsers.add(task.userId);
-    }
-
-    const missedTasks = await this.tasksRepository
-      .createQueryBuilder('task')
-      .where('task.status = :status', { status: TaskStatus.NOT_STARTED })
-      .andWhere('task.scheduledEnd <= :now', { now: now.toISOString() })
-      .getMany();
-
-    for (const task of missedTasks) {
-      task.status = TaskStatus.INCOMPLETE;
-      task.startedAt = null;
-      task.endedAt = task.scheduledEnd;
-      task.debriefPending = true;
-      task.scheduleEndedAt = task.scheduledEnd;
       await this.tasksRepository.save(task);
       changedUsers.add(task.userId);
     }
