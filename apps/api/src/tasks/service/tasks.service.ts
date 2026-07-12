@@ -299,7 +299,12 @@ export class TasksService {
   }
 
   async getTodaySummary(userId: string) {
-    const tasks = await this.findToday(userId);
+    return this.getSummaryForDate(userId, this.todayKey());
+  }
+
+  async getSummaryForDate(userId: string, date: string) {
+    const scheduledDate = this.assertDateKey(date);
+    const tasks = await this.findByDate(userId, scheduledDate);
     const breakdown: SummaryRow[] = tasks.map((task) => {
       const variance = task.actualTime - task.duration;
       return {
@@ -327,7 +332,7 @@ export class TasksService {
     );
 
     return {
-      date: this.todayKey(),
+      date: scheduledDate,
       plannedMinutes,
       actualMinutes,
       completedCount,
@@ -336,6 +341,63 @@ export class TasksService {
       totalOverrunMinutes,
       breakdown,
     };
+  }
+
+  async listActiveSummaryDays(userId: string, limit = 30) {
+    const safeLimit = Math.min(90, Math.max(1, Math.round(Number(limit) || 30)));
+
+    const rows = await this.tasksRepository
+      .createQueryBuilder('task')
+      .select("to_char(task.scheduledDate, 'YYYY-MM-DD')", 'date')
+      .addSelect('COALESCE(SUM(task.duration), 0)', 'plannedMinutes')
+      .addSelect('COALESCE(SUM(task.actualTime), 0)', 'actualMinutes')
+      .addSelect('COUNT(*)', 'totalTasks')
+      .addSelect(
+        `SUM(CASE WHEN task.status = :completed THEN 1 ELSE 0 END)`,
+        'completedCount',
+      )
+      .where('task.userId = :userId', { userId })
+      .setParameter('completed', TaskStatus.COMPLETED)
+      .groupBy("to_char(task.scheduledDate, 'YYYY-MM-DD')")
+      .orderBy("to_char(task.scheduledDate, 'YYYY-MM-DD')", 'DESC')
+      .limit(safeLimit)
+      .getRawMany<{
+        date: string;
+        plannedMinutes: string | number;
+        actualMinutes: string | number;
+        totalTasks: string | number;
+        completedCount: string | number;
+      }>();
+
+    return rows.map((row) => {
+      const plannedMinutes = Number(row.plannedMinutes) || 0;
+      const actualMinutes = Number(row.actualMinutes) || 0;
+      const totalTasks = Number(row.totalTasks) || 0;
+      const completedCount = Number(row.completedCount) || 0;
+      const efficiency =
+        plannedMinutes === 0
+          ? 0
+          : Math.max(0, Math.min(100, Math.round((actualMinutes / plannedMinutes) * 100)));
+
+      return {
+        date: this.toDateKey(row.date),
+        plannedMinutes,
+        actualMinutes,
+        totalTasks,
+        completedCount,
+        efficiency,
+      };
+    });
+  }
+
+  private toDateKey(value: string | Date) {
+    if (value instanceof Date) {
+      const year = value.getUTCFullYear();
+      const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(value.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return String(value).trim().slice(0, 10);
   }
 
   private assertDateKey(date: string) {
