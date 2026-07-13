@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { toast } from 'sonner';
@@ -15,8 +15,8 @@ import {
 } from '@/lib/focus-api';
 import { formatSecondsAsHMS } from '@/lib/timer';
 
-export default function FocusPage() {
-  const { getToken } = useAuth();
+function FocusPageContent() {
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTaskId = searchParams.get('taskId');
@@ -26,13 +26,33 @@ export default function FocusPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [now, setNow] = useState<Date>(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      if (isLoaded && !isSignedIn) {
+        setLoading(false);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
     async function loadTask() {
       setLoading(true);
       try {
         const tasks = await listTodayTasks(getToken);
+        if (cancelled) {
+          return;
+        }
         const selected =
           tasks.find((item) => item.id === requestedTaskId) ??
           tasks.find((item) => item.status === 'in_progress') ??
@@ -50,24 +70,29 @@ export default function FocusPage() {
         );
         setRemainingSeconds(sessionRemaining);
       } catch (err) {
-        toast.error(getRequestErrorMessage(err, 'Failed to load focus session'));
+        if (!cancelled) {
+          toast.error(getRequestErrorMessage(err, 'Failed to load focus session'));
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     void loadTask();
-  }, [requestedTaskId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedTaskId, getToken, isLoaded, isSignedIn, router]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!isLoaded || !isSignedIn) {
+      return;
+    }
 
-  useEffect(() => {
     let stream: EventSource | null = null;
+    let cancelled = false;
 
     async function connectStream() {
       try {
@@ -90,6 +115,9 @@ export default function FocusPage() {
               // Keep current state if refresh fails.
             });
         });
+        if (cancelled) {
+          stream.close();
+        }
       } catch {
         // Stream is optional for focus.
       }
@@ -97,9 +125,10 @@ export default function FocusPage() {
 
     void connectStream();
     return () => {
+      cancelled = true;
       stream?.close();
     };
-  }, [requestedTaskId]);
+  }, [requestedTaskId, getToken, isLoaded, isSignedIn, router]);
 
   useEffect(() => {
     if (!task || showCompletion || task.status !== 'in_progress') {
@@ -120,7 +149,7 @@ export default function FocusPage() {
   }, [task, showCompletion]);
 
   const progress = useMemo(() => {
-    if (!task) {
+    if (!task || !now) {
       return 0;
     }
     const start = new Date(task.scheduledStart).getTime();
@@ -135,6 +164,7 @@ export default function FocusPage() {
     );
     return Math.max(0, Math.min(100, (elapsedSeconds / totalSeconds) * 100));
   }, [task, now]);
+
 
   async function onComplete() {
     if (!task) return;
@@ -253,3 +283,13 @@ export default function FocusPage() {
   );
 }
 
+
+export default function FocusPage() {
+  return (
+    <Suspense
+      fallback={<p className="text-sm text-muted-foreground">Loading focus…</p>}
+    >
+      <FocusPageContent />
+    </Suspense>
+  );
+}

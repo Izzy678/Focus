@@ -46,7 +46,7 @@ function formatDayHeading(dateKey: string, isToday: boolean) {
 }
 
 export default function SummaryPage() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [days, setDays] = useState<SummaryDay[]>([]);
@@ -57,6 +57,13 @@ export default function SummaryPage() {
   const isToday = selectedDate === todayKey();
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      if (isLoaded && !isSignedIn) {
+        setDaysLoading(false);
+      }
+      return;
+    }
+
     async function loadDays() {
       setDaysLoading(true);
       try {
@@ -70,9 +77,16 @@ export default function SummaryPage() {
     }
 
     void loadDays();
-  }, [getToken]);
+  }, [getToken, isLoaded, isSignedIn]);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      if (isLoaded && !isSignedIn) {
+        setLoading(false);
+      }
+      return;
+    }
+
     async function loadSummary() {
       setLoading(true);
       try {
@@ -87,7 +101,7 @@ export default function SummaryPage() {
     }
 
     void loadSummary();
-  }, [getToken, selectedDate]);
+  }, [getToken, selectedDate, isLoaded, isSignedIn]);
 
   const efficiency = useMemo(() => {
     if (!summary || summary.plannedMinutes === 0) {

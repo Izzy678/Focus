@@ -67,7 +67,7 @@ function PlanPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlEditId = searchParams.get('edit');
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [totalPlannedMinutes, setTotalPlannedMinutes] = useState(0);
   const [draft, setDraft] = useState<TaskDraft>(buildDefaultDraft());
   const [saving, setSaving] = useState(false);
@@ -88,13 +88,23 @@ function PlanPageContent() {
   }
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      if (isLoaded && !isSignedIn) {
+        setLoadingTotals(false);
+      }
+      return;
+    }
     void refreshPlannedTotals();
-  }, []);
+  }, [isLoaded, isSignedIn, getToken]);
 
   useEffect(() => {
     if (!urlEditId) {
       setResolvedEditId(null);
       setEditLoading(false);
+      return;
+    }
+
+    if (!isLoaded || !isSignedIn) {
       return;
     }
 
@@ -138,7 +148,7 @@ function PlanPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [urlEditId, getToken, router]);
+  }, [urlEditId, getToken, router, isLoaded, isSignedIn]);
 
   const isEditing = Boolean(urlEditId && resolvedEditId === urlEditId);
 
