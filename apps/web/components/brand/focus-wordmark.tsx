@@ -3,16 +3,19 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 type FocusWordmarkProps = {
-  href?: string;
+  href?: string | null;
   className?: string;
   /** Light text on dark backgrounds (e.g. auth marketing panel). */
   inverted?: boolean;
+  /** Show only the F mark (collapsed sidebar). */
+  markOnly?: boolean;
 };
 
 export function FocusWordmark({
   href = '/',
   className,
   inverted = false,
+  markOnly = false,
 }: FocusWordmarkProps) {
   const content = (
     <>
@@ -26,24 +29,37 @@ export function FocusWordmark({
       >
         F
       </span>
-      <span
-        className={cn(
-          'text-[15px] font-semibold tracking-[-0.03em]',
-          inverted ? 'text-white' : 'text-foreground',
-        )}
-      >
-        Focus
-      </span>
+      {!markOnly ? (
+        <span
+          className={cn(
+            'text-[15px] font-semibold tracking-[-0.03em]',
+            inverted ? 'text-white' : 'text-foreground',
+          )}
+        >
+          Focus
+        </span>
+      ) : null}
     </>
   );
 
   if (href) {
     return (
-      <Link href={href} className={cn('inline-flex items-center gap-2.5', className)}>
+      <Link
+        href={href}
+        className={cn('inline-flex items-center gap-2.5', className)}
+        title={markOnly ? 'Focus' : undefined}
+      >
         {content}
       </Link>
     );
   }
 
-  return <span className={cn('inline-flex items-center gap-2.5', className)}>{content}</span>;
+  return (
+    <span
+      className={cn('inline-flex items-center gap-2.5', className)}
+      title={markOnly ? 'Focus' : undefined}
+    >
+      {content}
+    </span>
+  );
 }
