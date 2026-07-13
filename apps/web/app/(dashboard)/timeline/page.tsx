@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   Activity,
   BookOpen,
@@ -57,39 +58,58 @@ function ExecutionPathNode({
 
   if (status === 'completed') {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-md border-2 border-emerald-600 bg-emerald-600 shadow-sm">
-        <Check className="h-5 w-5 text-white" strokeWidth={2.5} aria-hidden />
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-600/90">
+        <Check className="h-4 w-4 text-white" strokeWidth={2} aria-hidden />
       </div>
     );
   }
   if (status === 'in_progress') {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-md border-2 border-primary bg-primary shadow-sm">
-        <Timer className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} aria-hidden />
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
+        <Timer className="h-4 w-4 text-primary-foreground" strokeWidth={2} aria-hidden />
       </div>
     );
   }
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-md border-2 border-border bg-muted/80 shadow-sm">
-      <CategoryIcon className="h-5 w-5 text-muted-foreground" strokeWidth={2} aria-hidden />
+    <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card">
+      <CategoryIcon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} aria-hidden />
     </div>
+  );
+}
+
+function NowChip({ timeLabel }: { timeLabel: string }) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.span
+      className="inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-primary"
+      initial={reduceMotion ? false : { opacity: 0.55 }}
+      animate={reduceMotion ? undefined : { opacity: [0.55, 1, 0.55] }}
+      transition={
+        reduceMotion
+          ? undefined
+          : { duration: 2.4, ease: 'easeInOut', repeat: Infinity }
+      }
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+      Now · {timeLabel}
+    </motion.span>
   );
 }
 
 function formatTodayHeader(date: Date) {
   return date.toLocaleDateString(undefined, {
     weekday: 'long',
-    month: 'short',
+    month: 'long',
     day: 'numeric',
-    year: 'numeric',
   });
 }
 
 export default function TimelinePage() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [now, setNow] = useState<Date>(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   async function loadTasks(showLoading = false) {
     if (showLoading) {
@@ -107,11 +127,21 @@ export default function TimelinePage() {
     }
   }
 
+  // Wait for Clerk before fetching — otherwise getToken() is null and
+  // request() throws before any network call hits /tasks/today.
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+    if (!isSignedIn) {
+      setLoading(false);
+      return;
+    }
     void loadTasks(true);
-  }, []);
+  }, [isLoaded, isSignedIn, getToken]);
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -119,7 +149,12 @@ export default function TimelinePage() {
   }, []);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      return;
+    }
+
     let stream: EventSource | null = null;
+    let cancelled = false;
 
     async function connectStream() {
       try {
@@ -134,23 +169,32 @@ export default function TimelinePage() {
             void loadTasks(false);
           },
         );
+        if (cancelled) {
+          stream.close();
+        }
       } catch (err) {
-        toast.error(getRequestErrorMessage(err, 'Live updates unavailable'));
+        if (!cancelled) {
+          toast.error(getRequestErrorMessage(err, 'Live updates unavailable'));
+        }
       }
     }
 
     void connectStream();
 
     return () => {
+      cancelled = true;
       stream?.close();
     };
-  }, []);
+  }, [isLoaded, isSignedIn, getToken]);
 
   const currentTask = useMemo(
     () => tasks.find((task) => task.status === 'in_progress'),
     [tasks],
   );
   const nextTask = useMemo(() => {
+    if (!now) {
+      return undefined;
+    }
     const currentTime = now.getTime();
     return tasks
       .filter((task) => {
@@ -182,7 +226,7 @@ export default function TimelinePage() {
   const liveTask = currentTask ?? nextTask ?? null;
 
   const liveExecutionMetrics = useMemo(() => {
-    if (!liveTask) {
+    if (!liveTask || !now) {
       return {
         remainingSeconds: 0,
         progressPercent: 0,
@@ -242,46 +286,56 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 sm:space-y-10">
-      <header className="space-y-2 border-b border-border/60 pb-4 sm:pb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-foreground sm:text-sm sm:tracking-[0.28em]">
-          {formatTodayHeader(now)}
+    <div className="mx-auto max-w-6xl space-y-10 sm:space-y-12">
+      <header className="space-y-2 border-b border-border pb-5 sm:pb-6">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          {now ? formatTodayHeader(now) : 'Today'}
         </p>
-        <p className="max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          Your timeline, live execution, and execution path below are all for{' '}
-          <span className="font-semibold text-foreground">today</span> only — synced with
-          your scheduled tasks for this calendar day.
+        <h1 className="text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.05] tracking-[-0.045em]">
+          A day with a shape
+        </h1>
+        <p className="max-w-xl text-[15px] leading-6 tracking-[-0.01em] text-muted-foreground">
+          Live execution and today’s path — only what’s scheduled for this calendar day.
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-2xl border border-primary/25 bg-card shadow-sm">
-        <div className="border-l-[6px] border-l-primary bg-primary/[0.04] p-4 sm:p-6 md:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
-            Live Execution
+      <section className="overflow-hidden border border-border bg-card">
+        <div
+          className={cn(
+            'border-l-[3px] p-5 sm:p-7 md:p-8',
+            liveTask && currentTask
+              ? 'border-l-primary bg-primary/[0.04]'
+              : 'border-l-border',
+          )}
+        >
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Live execution
           </p>
           {liveTask ? (
-            <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_280px] lg:items-start">
+            <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_240px] lg:items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                  {currentTask ? 'You should be doing' : 'Up next'}
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  {currentTask ? 'Now' : 'Up next'}
                 </p>
-                <h1 className="mt-2 text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl lg:text-4xl">
+                <h2 className="mt-2 text-[clamp(1.5rem,3.2vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.045em]">
                   {liveTask.title}
-                </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                </h2>
+                <p className="mt-2 text-[15px] leading-6 tracking-[-0.01em] text-muted-foreground">
                   {liveTask.goals.length
-                    ? liveTask.goals.join(' • ')
+                    ? liveTask.goals.join(' · ')
                     : 'No goals set for this task.'}
                 </p>
 
-                <div className="mt-6 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="mt-7 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground">
                     <span>Session progress</span>
-                    <span className="text-primary">{liveExecutionMetrics.progressPercent}%</span>
+                    <span className="tabular-nums text-primary">
+                      {liveExecutionMetrics.progressPercent}%
+                    </span>
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-1 w-full overflow-hidden bg-primary/15">
                     <div
-                      className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                      className="h-full bg-primary transition-[width] duration-500 ease-out"
                       style={{ width: `${liveExecutionMetrics.progressPercent}%` }}
                     />
                   </div>
@@ -290,19 +344,18 @@ export default function TimelinePage() {
                 {currentTask ? (
                   <Link
                     href={`/focus?taskId=${liveTask.id}`}
-                    className="mt-6 inline-flex h-10 items-center rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md shadow-primary/15"
+                    className="mt-7 inline-flex h-10 items-center rounded-md bg-primary px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    Resume Focus
+                    Resume focus
                   </Link>
                 ) : (
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                      Window{' '}
+                  <div className="mt-7 flex flex-wrap items-center gap-3">
+                    <p className="text-[13px] font-medium tabular-nums text-muted-foreground">
                       {new Date(liveTask.scheduledStart).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
-                      })}{' '}
-                      –{' '}
+                      })}
+                      {' – '}
                       {new Date(liveTask.scheduledEnd).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -311,9 +364,9 @@ export default function TimelinePage() {
                     {liveTask.status === 'not_started' ? (
                       <Link
                         href={`/plan?edit=${liveTask.id}`}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[10px] font-bold uppercase tracking-wider text-foreground transition hover:bg-muted"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
                       >
-                        <Pencil className="h-3.5 w-3.5" aria-hidden />
+                        <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
                         Edit
                       </Link>
                     ) : null}
@@ -321,51 +374,57 @@ export default function TimelinePage() {
                 )}
               </div>
 
-              <div className="rounded-xl border border-border/80 bg-background/80 px-6 py-5 text-center shadow-inner">
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+              <div className="border border-border bg-background px-5 py-5 text-center sm:px-6">
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   {liveExecutionMetrics.timerLabel}
                 </p>
-                <p className="mt-3 font-mono text-2xl font-black tracking-tight text-foreground tabular-nums sm:text-3xl md:text-4xl lg:text-5xl">
+                <p className="mt-3 font-mono text-[clamp(1.75rem,4vw,2.75rem)] font-medium tracking-[-0.04em] text-foreground tabular-nums">
                   {remainingHMS}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-border bg-background/50 p-6 text-sm text-muted-foreground">
-              Nothing scheduled for the rest of today in your timeline. Add tasks in Plan.
+            <div className="mt-5 border border-dashed border-border bg-background/60 p-6 text-[15px] text-muted-foreground">
+              Nothing scheduled for the rest of today.{' '}
+              <Link href="/plan" className="font-medium text-primary hover:underline">
+                Add tasks in Plan
+              </Link>
+              .
             </div>
           )}
         </div>
       </section>
 
-      {loading ? <p className="text-sm text-muted-foreground">Loading timeline...</p> : null}
+      {loading ? <p className="text-sm text-muted-foreground">Loading timeline…</p> : null}
 
       {debriefPendingTasks.length ? (
-        <section className="rounded-2xl border border-amber-300/60 bg-amber-50/70 p-4 dark:border-amber-500/35 dark:bg-amber-950/40">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-900 dark:text-amber-200">
-            Pending Debrief
+        <section className="border border-amber-500/25 bg-amber-500/[0.06] p-5 dark:bg-amber-500/[0.08]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-amber-900/80 dark:text-amber-200/90">
+            Pending debrief
           </p>
-          <div className="mt-3 space-y-3">
+          <div className="mt-4 space-y-3">
             {debriefPendingTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background/80 p-3 dark:bg-card/90"
+                className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-4"
               >
-                <p className="text-sm font-semibold text-foreground">{task.title}</p>
+                <p className="text-[15px] font-medium tracking-[-0.02em] text-foreground">
+                  {task.title}
+                </p>
                 <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                   <button
                     type="button"
-                    className="min-h-10 rounded-md border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider sm:py-1"
+                    className="min-h-10 rounded-md border border-border px-3.5 py-2 text-[13px] font-medium transition-colors hover:bg-muted sm:py-1.5"
                     onClick={() => onDebrief(task.id, 'completed')}
                   >
-                    Mark Completed
+                    Mark completed
                   </button>
                   <button
                     type="button"
-                    className="min-h-10 rounded-md border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider sm:py-1"
+                    className="min-h-10 rounded-md border border-border px-3.5 py-2 text-[13px] font-medium transition-colors hover:bg-muted sm:py-1.5"
                     onClick={() => onDebrief(task.id, 'incomplete')}
                   >
-                    Mark Incomplete
+                    Mark incomplete
                   </button>
                 </div>
               </div>
@@ -374,22 +433,27 @@ export default function TimelinePage() {
         </section>
       ) : null}
 
-      <section className="space-y-4">
+      <section className="space-y-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-2xl font-extrabold tracking-tight">Execution Path</h2>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Sort: chronological
-          </p>
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+              Execution path
+            </p>
+            <h2 className="mt-1.5 text-[clamp(1.5rem,2.8vw,2rem)] font-medium tracking-[-0.04em]">
+              Today’s blocks
+            </h2>
+          </div>
+          <p className="text-[12px] text-muted-foreground">Chronological</p>
         </div>
 
-        <div className="relative">
+        <div className="relative overflow-hidden border border-border bg-card">
           {tasks.length > 0 ? (
             <div
-              className="pointer-events-none absolute left-[18px] top-9 bottom-9 z-0 w-px bg-border sm:left-5 sm:top-10 sm:bottom-10"
+              className="pointer-events-none absolute left-[22px] top-8 bottom-8 z-0 w-px bg-border sm:left-6"
               aria-hidden
             />
           ) : null}
-          <ul className="relative z-[1] list-none space-y-2 p-0 sm:space-y-3">
+          <ul className="relative z-[1] list-none divide-y divide-border p-0">
             {tasks.map((task) => {
               const start = new Date(task.scheduledStart);
               const end = new Date(task.scheduledEnd);
@@ -398,84 +462,80 @@ export default function TimelinePage() {
                 task.status === 'completed'
                   ? 'Completed'
                   : task.status === 'in_progress'
-                    ? 'In Progress'
+                    ? 'In progress'
                     : task.status === 'incomplete'
                       ? 'Incomplete'
                       : 'Upcoming';
               const shouldShowNow =
+                !!now &&
                 now.getTime() >= start.getTime() &&
                 now.getTime() < end.getTime() &&
                 !task.debriefPending;
 
               return (
-                <li key={task.id} className="flex gap-2 sm:gap-4">
-                  <div className="flex w-9 shrink-0 flex-col items-center pt-1 sm:w-auto">
+                <li key={task.id} className="flex gap-3 sm:gap-4">
+                  <div className="flex w-11 shrink-0 flex-col items-center pt-4 sm:w-12 sm:pt-5">
                     <ExecutionPathNode status={task.status} category={task.category} />
                   </div>
                   <article
                     className={cn(
-                      'min-w-0 flex-1 rounded-xl border bg-card p-3 sm:p-4',
-                      isCurrent &&
-                        'border-primary/50 border-l-4 border-l-primary bg-primary/[0.06] shadow-sm',
-                      task.status === 'completed' && 'border-border opacity-90',
-                      !isCurrent &&
-                        task.status !== 'completed' &&
-                        'border-border',
+                      'min-w-0 flex-1 px-1 py-4 pr-4 sm:py-5 sm:pr-6',
+                      isCurrent && 'bg-primary/[0.045]',
+                      task.status === 'completed' && 'opacity-75',
                     )}
                   >
                     <div className="mb-2 flex items-center justify-between gap-4">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
+                      <p className="text-[11px] tabular-nums text-muted-foreground">
+                        {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {' – '}
                         {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      <p
-                        className={cn(
-                          'text-xs font-bold uppercase tracking-[0.2em]',
-                          isCurrent ? 'text-primary' : 'text-muted-foreground',
-                        )}
-                      >
-                        {statusLabel}
-                      </p>
+                      {shouldShowNow && now ? (
+                        <NowChip
+                          timeLabel={now.toLocaleTimeString([], {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        />
+                      ) : (
+                        <p
+                          className={cn(
+                            'text-[11px] font-medium uppercase tracking-[0.12em]',
+                            isCurrent ? 'text-primary' : 'text-muted-foreground/80',
+                          )}
+                        >
+                          {statusLabel}
+                        </p>
+                      )}
                     </div>
                     <h3
                       className={cn(
-                        'text-base font-extrabold sm:text-lg md:text-xl',
+                        'text-[15px] font-medium tracking-[-0.02em] sm:text-base',
                         task.status === 'completed' && 'text-muted-foreground',
                       )}
                     >
                       {task.title}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {task.goals.length ? task.goals.join(' • ') : 'No goals set'}
+                    <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+                      {task.goals.length ? task.goals.join(' · ') : 'No goals set'}
                     </p>
                     {task.status === 'not_started' ? (
                       <div className="mt-4 flex flex-wrap gap-2">
                         <Link
                           href={`/plan?edit=${task.id}`}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[10px] font-bold uppercase tracking-wider text-foreground transition hover:bg-muted"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
                         >
-                          <Pencil className="h-3.5 w-3.5" aria-hidden />
-                          Edit in Plan
+                          <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                          Edit
                         </Link>
                         <button
                           type="button"
                           onClick={() => onDeleteUpcoming(task.id)}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-destructive/40 bg-background px-3 text-[10px] font-bold uppercase tracking-wider text-destructive transition hover:bg-destructive/10"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-destructive/30 bg-background px-3 text-[13px] font-medium text-destructive transition-colors hover:bg-destructive/10"
                         >
-                          <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
                           Delete
                         </button>
-                      </div>
-                    ) : null}
-                    {shouldShowNow ? (
-                      <div className="relative mt-4 flex justify-end">
-                        <span className="inline-flex rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-                          Now •{' '}
-                          {now.toLocaleTimeString([], {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          })}
-                        </span>
                       </div>
                     ) : null}
                   </article>
@@ -483,32 +543,58 @@ export default function TimelinePage() {
               );
             })}
           </ul>
-        </div>
 
-        {!loading && tasks.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Your timeline for today is empty. Add tasks in Plan.
-          </div>
-        ) : null}
+          {!loading && tasks.length === 0 ? (
+            <div className="p-8 text-center text-[15px] text-muted-foreground">
+              Your timeline for today is empty.{' '}
+              <Link href="/plan" className="font-medium text-primary hover:underline">
+                Add tasks in Plan
+              </Link>
+              .
+            </div>
+          ) : null}
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-        <MetricCard label="Focus Efficiency" value={`${tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0}%`} />
-        <MetricCard label="Deep Work Today" value={formatMinutesToClock(completedMinutes)} />
-        <MetricCard label="Major Tasks Done" value={`${completedTasks.length} / ${tasks.length || 0}`} />
+      <section className="grid grid-cols-1 border border-border bg-card sm:grid-cols-3">
+        <MetricCard
+          label="Focus efficiency"
+          value={`${tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0}`}
+          suffix="%"
+        />
+        <MetricCard
+          label="Deep work today"
+          value={formatMinutesToClock(completedMinutes)}
+        />
+        <MetricCard
+          label="Tasks done"
+          value={`${completedTasks.length}`}
+          suffix={` / ${tasks.length || 0}`}
+        />
       </section>
     </div>
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({
+  label,
+  value,
+  suffix,
+}: {
+  label: string;
+  value: string;
+  suffix?: string;
+}) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
-        {label}
-      </p>
-      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums sm:mt-3 sm:text-3xl">
+    <div className="border-b border-border px-5 py-6 last:border-b-0 sm:border-b-0 sm:border-r sm:px-6 sm:last:border-r-0">
+      <p className="text-[12px] text-muted-foreground">{label}</p>
+      <p className="mt-3 text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-none tracking-[-0.055em] tabular-nums">
         {value}
+        {suffix ? (
+          <span className="text-[0.48em] tracking-[-0.03em] text-muted-foreground">
+            {suffix}
+          </span>
+        ) : null}
       </p>
     </div>
   );
