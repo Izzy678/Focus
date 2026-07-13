@@ -8,6 +8,8 @@ export function ClerkSignUpPanel() {
       path="/sign-up"
       routing="path"
       signInUrl="/sign-in"
+      forceRedirectUrl="/timeline"
+      fallbackRedirectUrl="/timeline"
       appearance={{
         elements: {
           rootBox: 'w-full',
