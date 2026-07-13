@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
+
 const day = [
   { time: "08:00", end: "09:00", title: "Morning planning", state: "done" },
   { time: "09:00", end: "11:00", title: "Deep work", state: "now" },
@@ -46,9 +49,9 @@ function Wordmark() {
   return (
     <Link
       href="#top"
-      className="inline-flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.03em]"
+      className="inline-flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.03em] text-foreground"
     >
-      <span className="grid h-6 w-6 place-items-center rounded-[7px] bg-[#111] text-[11px] font-bold text-white">
+      <span className="grid h-6 w-6 place-items-center rounded-[7px] bg-[#111] text-[11px] font-bold text-white dark:bg-white dark:text-[#111]">
         F
       </span>
       Focus
@@ -69,19 +72,22 @@ function DayList({ compact = false }: { compact?: boolean }) {
   }, [reduceMotion]);
   return (
     <div
-      className={`overflow-hidden border border-black/10 bg-white ${compact ? "" : "shadow-[0_24px_60px_rgba(12,12,12,0.08)]"}`}
+      className={cn(
+        "overflow-hidden border border-black/10 bg-white dark:border-white/10 dark:bg-[#161616]",
+        !compact && "shadow-[0_24px_60px_rgba(12,12,12,0.08)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.35)]",
+      )}
     >
       {!compact && (
-        <div className="flex items-center justify-between border-b border-black/10 px-5 py-4 sm:px-6">
+        <div className="flex items-center justify-between border-b border-black/10 px-5 py-4 dark:border-white/10 sm:px-6">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/45">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/45 dark:text-white/45">
               Tuesday, October 22
             </p>
             <p className="mt-1 text-sm font-medium tracking-[-0.02em]">
               A day with a shape
             </p>
           </div>
-          <span className="text-xs text-black/45">4 blocks</span>
+          <span className="text-xs text-black/45 dark:text-white/45">4 blocks</span>
         </div>
       )}
       <div className={compact ? "p-3" : "p-3 sm:p-4"}>
@@ -92,11 +98,14 @@ function DayList({ compact = false }: { compact?: boolean }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ delay: index * 0.08, duration: 0.45 }}
-            className={`relative grid grid-cols-[72px_1fr] gap-3 border-b border-black/7 py-3.5 last:border-0 ${item.state === "now" ? "bg-[#2563EB]/[0.055] px-3 -mx-1" : ""}`}
+            className={cn(
+              "relative grid grid-cols-[72px_1fr] gap-3 border-b border-black/7 py-3.5 last:border-0 dark:border-white/8",
+              item.state === "now" && "bg-[#2563EB]/[0.055] px-3 -mx-1 dark:bg-[#2563EB]/15",
+            )}
           >
-            <div className="pt-0.5 text-[11px] tabular-nums text-black/42">
+            <div className="pt-0.5 text-[11px] tabular-nums text-black/42 dark:text-white/42">
               <p>{item.time}</p>
-              <p className="mt-0.5 text-black/28">{item.end}</p>
+              <p className="mt-0.5 text-black/28 dark:text-white/28">{item.end}</p>
             </div>
             <div>
               <div className="flex items-center justify-between gap-3">
@@ -104,7 +113,7 @@ function DayList({ compact = false }: { compact?: boolean }) {
                   {item.title}
                 </p>
                 {item.state === "done" && (
-                  <Check className="h-4 w-4 text-black/38" strokeWidth={1.8} />
+                  <Check className="h-4 w-4 text-black/38 dark:text-white/38" strokeWidth={1.8} />
                 )}
                 {item.state === "now" && (
                   <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[#2563EB]">
@@ -127,7 +136,7 @@ function DayList({ compact = false }: { compact?: boolean }) {
         ))}
       </div>
       {!compact && (
-        <div className="flex items-center justify-between border-t border-black/10 px-5 py-3.5 text-xs text-black/45 sm:px-6">
+        <div className="flex items-center justify-between border-t border-black/10 px-5 py-3.5 text-xs text-black/45 dark:border-white/10 dark:text-white/45 sm:px-6">
           <span>09:52 local time</span>
           <span>On plan</span>
         </div>
@@ -136,9 +145,22 @@ function DayList({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
+function SectionEyebrow({
+  children,
+  inverted = false,
+}: {
+  children: React.ReactNode;
+  inverted?: boolean;
+}) {
   return (
-    <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
+    <p
+      className={cn(
+        "mb-6 text-[11px] font-semibold uppercase tracking-[0.18em]",
+        inverted
+          ? "text-white/45"
+          : "text-black/45 dark:text-white/45",
+      )}
+    >
       {children}
     </p>
   );
@@ -150,45 +172,49 @@ export function LandingPage() {
   return (
     <main
       id="top"
-      className="overflow-hidden bg-[#fff] text-[#101010] selection:bg-[#2563EB] selection:text-white"
+      className="overflow-hidden bg-[#fff] text-[#101010] selection:bg-[#2563EB] selection:text-white dark:bg-[#0a0a0a] dark:text-white"
     >
       <header className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
         <Wordmark />
-        <nav className="hidden items-center gap-7 text-[13px] text-black/58 md:flex">
-          <a href="#method" className="transition-colors hover:text-black">
+        <nav className="hidden items-center gap-7 text-[13px] text-black/58 dark:text-white/58 md:flex">
+          <a href="#method" className="transition-colors hover:text-black dark:hover:text-white">
             Method
           </a>
-          <a href="#review" className="transition-colors hover:text-black">
+          <a href="#review" className="transition-colors hover:text-black dark:hover:text-white">
             Review
           </a>
-          <a href="#pricing" className="transition-colors hover:text-black">
+          <a href="#pricing" className="transition-colors hover:text-black dark:hover:text-white">
             Pricing
           </a>
         </nav>
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <Link
             href="/sign-in"
-            className="text-[13px] font-medium text-black/65 transition-colors hover:text-black"
+            className="text-[13px] font-medium text-black/65 transition-colors hover:text-black dark:text-white/65 dark:hover:text-white"
           >
             Sign in
           </Link>
           <Link
             href="/sign-up"
-            className="rounded-md bg-[#111] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2563EB]"
+            className="rounded-md bg-[#111] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2563EB] dark:bg-white dark:text-[#111] dark:hover:bg-[#2563EB] dark:hover:text-white"
           >
             Start planning
           </Link>
         </div>
-        <button
-          className="grid h-9 w-9 place-items-center md:hidden"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            className="grid h-9 w-9 place-items-center"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </header>
       {menuOpen && (
-        <div className="border-y border-black/10 px-5 py-5 md:hidden">
+        <div className="border-y border-black/10 px-5 py-5 dark:border-white/10 md:hidden">
           <nav className="flex flex-col gap-4 text-sm">
             <a href="#method" onClick={() => setMenuOpen(false)}>
               Method
@@ -211,14 +237,14 @@ export function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/48">
+          <p className="mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/48 dark:text-white/48">
             <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" /> Time,
             kept
           </p>
           <h1 className="max-w-[760px] text-balance text-[clamp(3.4rem,7.3vw,7.4rem)] font-medium leading-[0.94] tracking-[-0.075em]">
             Keep the promises you make to your calendar.
           </h1>
-          <p className="mt-8 max-w-[470px] text-pretty text-[17px] leading-[1.55] tracking-[-0.015em] text-black/60">
+          <p className="mt-8 max-w-[470px] text-pretty text-[17px] leading-[1.55] tracking-[-0.015em] text-black/60 dark:text-white/60">
             Focus turns a plan into a day you can honor. Make time visible, work
             one block at a time, and learn what your days are really made of.
           </p>
@@ -231,7 +257,7 @@ export function LandingPage() {
             </Link>
             <a
               href="#method"
-              className="inline-flex items-center gap-2 text-[14px] font-medium text-black/72 hover:text-black"
+              className="inline-flex items-center gap-2 text-[14px] font-medium text-black/72 hover:text-black dark:text-white/72 dark:hover:text-white"
             >
               See how it works <ArrowDownRight className="h-4 w-4" />
             </a>
@@ -244,14 +270,14 @@ export function LandingPage() {
           className="mx-auto w-full max-w-[510px] lg:justify-self-end"
         >
           <DayList />
-          <p className="mt-4 text-center text-[11px] tracking-[-0.01em] text-black/38">
+          <p className="mt-4 text-center text-[11px] tracking-[-0.01em] text-black/38 dark:text-white/38">
             The day, in motion. No noise required.
           </p>
         </motion.div>
       </section>
-      <section className="border-y border-black/10 bg-[#f8f8f7]">
+      <section className="border-y border-black/10 bg-[#f8f8f7] dark:border-white/10 dark:bg-[#111]">
         <div className="mx-auto grid max-w-[1440px] lg:grid-cols-2">
-          <div className="border-b border-black/10 px-5 py-20 sm:px-8 lg:border-b-0 lg:border-r lg:px-12 lg:py-28">
+          <div className="border-b border-black/10 px-5 py-20 dark:border-white/10 sm:px-8 lg:border-b-0 lg:border-r lg:px-12 lg:py-28">
             <SectionEyebrow>The old way</SectionEyebrow>
             <h2 className="max-w-[540px] text-[clamp(2.5rem,4.5vw,5rem)] font-medium leading-[0.98] tracking-[-0.065em]">
               To-do lists tell you{" "}
@@ -260,13 +286,13 @@ export function LandingPage() {
               Schedules tell you{" "}
               <em className="font-serif font-normal">when.</em>
             </h2>
-            <div className="mt-12 max-w-[420px] border-l border-black/10 pl-5 text-[15px] leading-7 text-black/45">
-              <p className="line-through decoration-black/25">
+            <div className="mt-12 max-w-[420px] border-l border-black/10 pl-5 text-[15px] leading-7 text-black/45 dark:border-white/10 dark:text-white/45">
+              <p className="line-through decoration-black/25 dark:decoration-white/25">
                 Reply to Ana about the brief
               </p>
               <p className="mt-2">Write the proposal</p>
               <p className="mt-2">Gym?</p>
-              <p className="mt-2 line-through decoration-black/25">
+              <p className="mt-2 line-through decoration-black/25 dark:decoration-white/25">
                 Prepare for Thursday
               </p>
               <p className="mt-2">Follow up on everything else</p>
@@ -274,7 +300,7 @@ export function LandingPage() {
           </div>
           <div className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
             <SectionEyebrow>A quieter alternative</SectionEyebrow>
-            <p className="max-w-[430px] text-[20px] leading-[1.35] tracking-[-0.035em] text-black/66">
+            <p className="max-w-[430px] text-[20px] leading-[1.35] tracking-[-0.035em] text-black/66 dark:text-white/66">
               A schedule does not make your day rigid. It gives your attention
               somewhere clear to land.
             </p>
@@ -291,17 +317,17 @@ export function LandingPage() {
           <br className="hidden sm:block" /> It&apos;s honoring the time you
           planned.”
         </blockquote>
-        <p className="mt-9 text-[12px] font-medium uppercase tracking-[0.16em] text-black/40">
+        <p className="mt-9 text-[12px] font-medium uppercase tracking-[0.16em] text-black/40 dark:text-white/40">
           Focus, on schedule fidelity
         </p>
       </section>
       <section
         id="method"
-        className="border-y border-black/10 bg-[#111] text-white"
+        className="border-y border-black/10 bg-[#111] text-white dark:border-white/10"
       >
         <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <div className="max-w-[720px]">
-            <SectionEyebrow>One day, clearly held</SectionEyebrow>
+            <SectionEyebrow inverted>One day, clearly held</SectionEyebrow>
             <h2 className="text-balance text-[clamp(2.8rem,5.2vw,5.8rem)] font-medium leading-[0.96] tracking-[-0.07em]">
               A live timeline for the work in front of you.
             </h2>
@@ -319,14 +345,14 @@ export function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 sm:py-36 lg:px-12">
-        <div className="grid items-end gap-8 border-b border-black/10 pb-12 lg:grid-cols-[1fr_auto]">
+        <div className="grid items-end gap-8 border-b border-black/10 pb-12 dark:border-white/10 lg:grid-cols-[1fr_auto]">
           <div>
             <SectionEyebrow>Proof, not pressure</SectionEyebrow>
             <h2 className="max-w-[700px] text-balance text-[clamp(2.6rem,5vw,5.5rem)] font-medium leading-[0.97] tracking-[-0.07em]">
               See the shape of a day well kept.
             </h2>
           </div>
-          <p className="max-w-[250px] text-[14px] leading-6 text-black/52">
+          <p className="max-w-[250px] text-[14px] leading-6 text-black/52 dark:text-white/52">
             Three signals. Enough to make tomorrow better than today.
           </p>
         </div>
@@ -354,10 +380,10 @@ export function LandingPage() {
           />
         </div>
       </section>
-      <section className="border-y border-black/10 bg-[#f8f8f7]">
+      <section className="border-y border-black/10 bg-[#f8f8f7] dark:border-white/10 dark:bg-[#111]">
         <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <SectionEyebrow>How Focus works</SectionEyebrow>
-          <div className="divide-y divide-black/10">
+          <div className="divide-y divide-black/10 dark:divide-white/10">
             <Workflow
               number="01"
               title="Plan"
@@ -387,31 +413,31 @@ export function LandingPage() {
             Everyone deserves a day with edges.
           </h2>
         </div>
-        <div className="mt-16 border-t border-black/10">
+        <div className="mt-16 border-t border-black/10 dark:border-white/10">
           {audiences.map(([name, description], index) => (
             <div
               key={name}
-              className="grid gap-4 border-b border-black/10 py-5 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:py-6"
+              className="grid gap-4 border-b border-black/10 py-5 dark:border-white/10 sm:grid-cols-[120px_1fr_auto] sm:items-center sm:py-6"
             >
-              <span className="text-[11px] font-medium text-black/35">
+              <span className="text-[11px] font-medium text-black/35 dark:text-white/35">
                 0{index + 1}
               </span>
               <h3 className="text-[22px] tracking-[-0.04em]">{name}</h3>
-              <p className="max-w-[450px] text-[14px] leading-6 text-black/52">
+              <p className="max-w-[450px] text-[14px] leading-6 text-black/52 dark:text-white/52">
                 {description}
               </p>
             </div>
           ))}
         </div>
       </section>
-      <section id="review" className="border-y border-black/10 bg-[#f8f8f7]">
+      <section id="review" className="border-y border-black/10 bg-[#f8f8f7] dark:border-white/10 dark:bg-[#111]">
         <div className="mx-auto grid max-w-[1440px] gap-16 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:px-12">
           <div>
             <SectionEyebrow>Daily review</SectionEyebrow>
             <h2 className="text-balance text-[clamp(2.6rem,4.7vw,5rem)] font-medium leading-[0.97] tracking-[-0.07em]">
               End with clarity. Start again with intent.
             </h2>
-            <p className="mt-7 max-w-[410px] text-[16px] leading-7 text-black/55">
+            <p className="mt-7 max-w-[410px] text-[16px] leading-7 text-black/55 dark:text-white/55">
               Focus helps you notice the pattern, not prosecute the day.
             </p>
           </div>
@@ -425,7 +451,7 @@ export function LandingPage() {
             <blockquote className="text-balance text-[clamp(2.1rem,4.2vw,4.7rem)] font-medium leading-[1.03] tracking-[-0.06em]">
               “For the first time, I end the day knowing where it went.”
             </blockquote>
-            <figcaption className="mt-6 text-[13px] text-black/45">
+            <figcaption className="mt-6 text-[13px] text-black/45 dark:text-white/45">
               Mina Lee, independent designer
             </figcaption>
           </figure>
@@ -434,13 +460,13 @@ export function LandingPage() {
               “The calendar stopped being a list of obligations and became an
               agreement with myself.”
             </blockquote>
-            <figcaption className="mt-6 text-[13px] text-black/45">
+            <figcaption className="mt-6 text-[13px] text-black/45 dark:text-white/45">
               Jon Bell, product engineer
             </figcaption>
           </figure>
         </div>
       </section>
-      <section id="pricing" className="border-y border-black/10 bg-[#f8f8f7]">
+      <section id="pricing" className="border-y border-black/10 bg-[#f8f8f7] dark:border-white/10 dark:bg-[#111]">
         <div className="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
           <div className="max-w-[620px]">
             <SectionEyebrow>Simple by design</SectionEyebrow>
@@ -448,28 +474,25 @@ export function LandingPage() {
               One good plan is enough.
             </h2>
           </div>
-          <div className="mt-14 grid max-w-[930px] gap-px overflow-hidden border border-black/10 bg-black/10 md:grid-cols-2">
-            <Price
-              name="Personal"
-              price="Free"
-              description="For finding a rhythm that fits."
-              items={["Unlimited daily plans", "Live timeline", "Daily review"]}
-            />
+          <div className="mt-14 max-w-[480px] overflow-hidden border border-black/10 dark:border-white/10">
             <Price
               highlighted
-              name="Focus Pro"
-              price="$8"
+              name="Focus"
+              price="$2"
               suffix="/month"
-              description="For a practice worth returning to."
+              description="Seven days free. Then everything unlocked — no tiers, no feature gates."
               items={[
-                "Everything in Personal",
-                "Schedule fidelity insights",
+                "7-day free trial",
+                "Unlimited daily plans",
+                "Live timeline & focus mode",
+                "Daily review & analytics",
                 "Full focus history",
               ]}
+              cta="Start 7-day free trial"
             />
           </div>
-          <p className="mt-5 text-[12px] text-black/40">
-            No contracts. A quieter day starts free.
+          <p className="mt-5 text-[12px] text-black/40 dark:text-white/40">
+            Cancel anytime. Full access during the trial and after.
           </p>
         </div>
       </section>
@@ -487,16 +510,16 @@ export function LandingPage() {
           Start planning <ArrowRight className="h-4 w-4" />
         </Link>
       </section>
-      <footer className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 py-9 text-[12px] text-black/45 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
+      <footer className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 py-9 text-[12px] text-black/45 dark:text-white/45 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
         <Wordmark />
         <div className="flex gap-5">
-          <a href="#" className="hover:text-black">
+          <a href="#" className="hover:text-black dark:hover:text-white">
             Privacy
           </a>
-          <a href="#" className="hover:text-black">
+          <a href="#" className="hover:text-black dark:hover:text-white">
             Terms
           </a>
-          <a href="mailto:hello@focus.app" className="hover:text-black">
+          <a href="mailto:hello@focus.app" className="hover:text-black dark:hover:text-white">
             Contact
           </a>
         </div>
@@ -573,16 +596,16 @@ function Metric({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
-      className="border-b border-black/10 py-10 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
+      className="border-b border-black/10 py-10 dark:border-white/10 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
     >
-      <p className="text-[12px] text-black/45">{label}</p>
+      <p className="text-[12px] text-black/45 dark:text-white/45">{label}</p>
       <p className="mt-5 text-[clamp(3.3rem,5vw,5.5rem)] font-medium leading-none tracking-[-0.075em]">
         {value}
-        <span className="text-[0.43em] tracking-[-0.04em] text-black/48">
+        <span className="text-[0.43em] tracking-[-0.04em] text-black/48 dark:text-white/48">
           {suffix}
         </span>
       </p>
-      <p className="mt-4 text-[12px] text-black/42">{note}</p>
+      <p className="mt-4 text-[12px] text-black/42 dark:text-white/42">{note}</p>
     </motion.div>
   );
 }
@@ -606,7 +629,7 @@ function Workflow({
         <h3 className="mt-4 text-[clamp(2.8rem,5.2vw,5.4rem)] font-medium leading-[0.94] tracking-[-0.07em]">
           {title}
         </h3>
-        <p className="mt-6 max-w-[350px] text-[16px] leading-7 text-black/56">
+        <p className="mt-6 max-w-[350px] text-[16px] leading-7 text-black/56 dark:text-white/56">
           {description}
         </p>
       </div>
@@ -616,26 +639,26 @@ function Workflow({
 }
 function PlanVisual() {
   return (
-    <div className="border border-black/10 bg-white p-5 sm:p-7">
-      <div className="flex items-center justify-between border-b border-black/10 pb-4 text-[12px]">
+    <div className="border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#161616] sm:p-7">
+      <div className="flex items-center justify-between border-b border-black/10 pb-4 text-[12px] dark:border-white/10">
         <span className="font-medium">Wednesday</span>
-        <span className="text-black/42">October 23</span>
+        <span className="text-black/42 dark:text-white/42">October 23</span>
       </div>
       <div className="mt-5 grid grid-cols-[52px_1fr] gap-y-5 text-[12px]">
-        <span className="text-black/38">09:00</span>
+        <span className="text-black/38 dark:text-white/38">09:00</span>
         <div className="border-l-2 border-[#2563EB] pl-3">
           <p className="font-medium">Write project brief</p>
-          <p className="mt-1 text-black/42">90 minutes</p>
+          <p className="mt-1 text-black/42 dark:text-white/42">90 minutes</p>
         </div>
-        <span className="text-black/38">11:00</span>
-        <div className="border-l-2 border-black/15 pl-3">
+        <span className="text-black/38 dark:text-white/38">11:00</span>
+        <div className="border-l-2 border-black/15 pl-3 dark:border-white/15">
           <p className="font-medium">Team standup</p>
-          <p className="mt-1 text-black/42">30 minutes</p>
+          <p className="mt-1 text-black/42 dark:text-white/42">30 minutes</p>
         </div>
-        <span className="text-black/38">13:30</span>
-        <div className="border-l-2 border-black/15 pl-3">
+        <span className="text-black/38 dark:text-white/38">13:30</span>
+        <div className="border-l-2 border-black/15 pl-3 dark:border-white/15">
           <p className="font-medium">Research and notes</p>
-          <p className="mt-1 text-black/42">2 hours</p>
+          <p className="mt-1 text-black/42 dark:text-white/42">2 hours</p>
         </div>
       </div>
     </div>
@@ -644,7 +667,7 @@ function PlanVisual() {
 function ExecuteVisual() {
   const reduceMotion = useReducedMotion();
   return (
-    <div className="bg-[#111] p-6 text-white sm:p-9">
+    <div className="bg-[#111] p-6 text-white dark:bg-[#0a0a0a] dark:ring-1 dark:ring-white/10 sm:p-9">
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/42">
         In focus
       </p>
@@ -669,8 +692,8 @@ function ExecuteVisual() {
 }
 function ReflectVisual() {
   return (
-    <div className="border border-black/10 bg-white p-6 sm:p-8">
-      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/40">
+    <div className="border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-[#161616] sm:p-8">
+      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/40 dark:text-white/40">
         Tuesday’s debrief
       </p>
       <div className="mt-9 space-y-7">
@@ -703,26 +726,26 @@ function ReviewQuestion({
   answer: string;
 }) {
   return (
-    <div className="border-b border-black/10 pb-5 last:border-0 last:pb-0">
+    <div className="border-b border-black/10 pb-5 last:border-0 last:pb-0 dark:border-white/10">
       <p className="text-[11px] text-[#2563EB]">{number}</p>
       <p className="mt-2 text-[15px] tracking-[-0.02em]">{text}</p>
-      <p className="mt-2 text-[13px] leading-5 text-black/44">{answer}</p>
+      <p className="mt-2 text-[13px] leading-5 text-black/44 dark:text-white/44">{answer}</p>
     </div>
   );
 }
 function ReviewVisual() {
   return (
-    <div className="border border-black/10 bg-white p-6 sm:p-9">
+    <div className="border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-[#161616] sm:p-9">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/40">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/40 dark:text-white/40">
             Tuesday review
           </p>
           <p className="mt-2 text-sm font-medium">A day worth noticing</p>
         </div>
-        <Clock3 className="h-5 w-5 text-black/30" />
+        <Clock3 className="h-5 w-5 text-black/30 dark:text-white/30" />
       </div>
-      <div className="mt-10 divide-y divide-black/10">
+      <div className="mt-10 divide-y divide-black/10 dark:divide-white/10">
         <ReviewQuestion
           number="01"
           text="What interrupted you?"
@@ -752,6 +775,7 @@ function Price({
   description,
   items,
   highlighted = false,
+  cta,
 }: {
   name: string;
   price: string;
@@ -759,31 +783,51 @@ function Price({
   description: string;
   items: string[];
   highlighted?: boolean;
+  cta?: string;
 }) {
   return (
     <div
-      className={`p-7 sm:p-9 ${highlighted ? "bg-[#111] text-white" : "bg-white"}`}
+      className={cn(
+        "p-7 sm:p-9",
+        highlighted
+          ? "bg-[#111] text-white"
+          : "bg-white dark:bg-[#161616]",
+      )}
     >
       <p
-        className={`text-[12px] ${highlighted ? "text-white/48" : "text-black/45"}`}
+        className={cn(
+          "text-[12px]",
+          highlighted ? "text-white/48" : "text-black/45 dark:text-white/45",
+        )}
       >
         {name}
       </p>
       <p className="mt-7 text-[48px] font-medium leading-none tracking-[-0.065em]">
         {price}
         <span
-          className={`ml-1 text-[15px] tracking-[-0.02em] ${highlighted ? "text-white/48" : "text-black/42"}`}
+          className={cn(
+            "ml-1 text-[15px] tracking-[-0.02em]",
+            highlighted ? "text-white/48" : "text-black/42 dark:text-white/42",
+          )}
         >
           {suffix}
         </span>
       </p>
       <p
-        className={`mt-4 text-[14px] ${highlighted ? "text-white/60" : "text-black/55"}`}
+        className={cn(
+          "mt-4 text-[14px]",
+          highlighted ? "text-white/60" : "text-black/55 dark:text-white/55",
+        )}
       >
         {description}
       </p>
       <ul
-        className={`mt-9 space-y-3 border-t pt-6 text-[13px] ${highlighted ? "border-white/15 text-white/75" : "border-black/10 text-black/65"}`}
+        className={cn(
+          "mt-9 space-y-3 border-t pt-6 text-[13px]",
+          highlighted
+            ? "border-white/15 text-white/75"
+            : "border-black/10 text-black/65 dark:border-white/10 dark:text-white/65",
+        )}
       >
         {items.map((item) => (
           <li className="flex gap-2" key={item}>
@@ -796,9 +840,14 @@ function Price({
       </ul>
       <Link
         href="/sign-up"
-        className={`mt-10 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-[13px] font-medium transition-colors ${highlighted ? "bg-white text-black hover:bg-[#2563EB] hover:text-white" : "bg-[#111] text-white hover:bg-[#2563EB]"}`}
+        className={cn(
+          "mt-10 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-[13px] font-medium transition-colors",
+          highlighted
+            ? "bg-white text-black hover:bg-[#2563EB] hover:text-white"
+            : "bg-[#111] text-white hover:bg-[#2563EB] dark:bg-white dark:text-[#111] dark:hover:bg-[#2563EB] dark:hover:text-white",
+        )}
       >
-        {highlighted ? "Start 14-day trial" : "Start free"}
+        {cta ?? (highlighted ? "Start 7-day free trial" : "Start free")}
       </Link>
     </div>
   );
