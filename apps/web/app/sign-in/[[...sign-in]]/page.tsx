@@ -8,7 +8,7 @@ import { ClerkSignInPanel } from '@/components/auth/clerk-sign-in-panel';
 export default async function SignInPage() {
   const { userId } = await auth();
   if (userId) {
-    redirect('/');
+    redirect('/timeline');
   }
 
   return (
