@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { FocusWordmark } from '@/components/brand/focus-wordmark';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 
@@ -52,24 +53,15 @@ function SidebarNav({
     <>
       <div
         className={cn(
-          'flex items-start gap-2',
-          collapsed ? 'flex-col items-center' : 'justify-between',
+          'flex items-center gap-2',
+          collapsed ? 'flex-col' : 'justify-between',
         )}
       >
-        <div className={cn(collapsed && 'text-center')}>
-          {collapsed ? (
-            <p className="text-xl font-extrabold tracking-tight text-primary" title="Focus">
-              F
-            </p>
-          ) : (
-            <>
-              <h1 className="text-3xl font-extrabold tracking-tight text-primary">Focus</h1>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Disciplined Execution
-              </p>
-            </>
-          )}
-        </div>
+        <FocusWordmark
+          href="/timeline"
+          markOnly={collapsed}
+          className={cn(collapsed && 'justify-center')}
+        />
 
         {showClose ? (
           <button
@@ -78,7 +70,7 @@ function SidebarNav({
             className="rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="Close menu"
           >
-            <X className="h-5 w-5" strokeWidth={2} />
+            <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
         ) : onToggleCollapse ? (
           <button
@@ -89,15 +81,15 @@ function SidebarNav({
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? (
-              <PanelLeftOpen className="h-4 w-4" strokeWidth={2} />
+              <PanelLeftOpen className="h-4 w-4" strokeWidth={1.75} />
             ) : (
-              <PanelLeftClose className="h-4 w-4" strokeWidth={2} />
+              <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
             )}
           </button>
         ) : null}
       </div>
 
-      <nav className="mt-10 min-h-0 flex-1 space-y-1 overflow-y-auto">
+      <nav className="mt-10 min-h-0 flex-1 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const active = isNavActive(pathname, item.href);
           const Icon = item.icon;
@@ -108,14 +100,14 @@ function SidebarNav({
               onClick={onNavigate}
               title={collapsed ? item.label : undefined}
               className={cn(
-                'flex items-center rounded-md text-sm font-semibold transition',
-                collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-4 py-3',
+                'flex items-center rounded-md text-[13px] font-medium tracking-[-0.01em] transition-colors',
+                collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
                 active
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
               {!collapsed ? <span>{item.label}</span> : (
                 <span className="sr-only">{item.label}</span>
               )}
@@ -191,8 +183,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background">
       <aside
         className={cn(
-          'fixed left-0 top-0 z-30 hidden h-screen flex-col border-r border-border/70 bg-card transition-[width] duration-200 ease-out md:flex md:flex-col',
-          collapsed ? 'w-[4.5rem] p-3' : 'w-64 p-6',
+          'fixed left-0 top-0 z-30 hidden h-screen flex-col border-r border-border bg-card transition-[width] duration-200 ease-out md:flex md:flex-col',
+          collapsed ? 'w-[4.5rem] p-3' : 'w-64 p-5',
         )}
       >
         <SidebarNav
@@ -211,7 +203,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={closeMobileNav}
           />
           <aside
-            className="fixed left-0 top-0 z-50 flex h-screen w-[min(18rem,88vw)] flex-col border-r border-border/70 bg-card p-6 shadow-xl animate-in slide-in-from-left fade-in duration-200 md:hidden"
+            className="fixed left-0 top-0 z-50 flex h-screen w-[min(18rem,88vw)] flex-col border-r border-border bg-card p-5 shadow-[0_24px_60px_rgba(12,12,12,0.08)] animate-in slide-in-from-left fade-in duration-200 md:hidden"
             id="mobile-dashboard-nav"
           >
             <SidebarNav
@@ -229,35 +221,35 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           collapsed ? 'md:ml-[4.5rem]' : 'md:ml-64',
         )}
       >
-        <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-border/70 bg-background/95 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3 md:px-8">
+        <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background/90 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3 md:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setMobileNavOpen((open) => !open)}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition hover:bg-muted md:hidden"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-card text-foreground transition-colors hover:bg-muted md:hidden"
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-dashboard-nav"
               aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileNavOpen ? (
-                <X className="h-5 w-5" strokeWidth={2} />
+                <X className="h-4 w-4" strokeWidth={1.75} />
               ) : (
-                <Menu className="h-5 w-5" strokeWidth={2} />
+                <Menu className="h-4 w-4" strokeWidth={1.75} />
               )}
             </button>
-            <p className="min-w-0 truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+            <p className="min-w-0 truncate text-[13px] font-medium tracking-[-0.01em] text-muted-foreground">
               <span className="sm:hidden">Focus</span>
-              <span className="hidden sm:inline">Daily Execution System</span>
+              <span className="hidden sm:inline">Your day</span>
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link
               href="/summary"
-              className="inline-flex h-9 items-center rounded-md bg-primary px-3 text-[10px] font-bold uppercase tracking-wider text-primary-foreground sm:px-4 sm:text-xs"
+              className="inline-flex h-9 items-center rounded-md bg-secondary px-3.5 text-[13px] font-medium text-secondary-foreground transition-colors hover:bg-primary hover:text-primary-foreground sm:px-4"
             >
               <span className="sm:hidden">End</span>
-              <span className="hidden sm:inline">End Day</span>
+              <span className="hidden sm:inline">End day</span>
             </Link>
             <UserButton />
           </div>
