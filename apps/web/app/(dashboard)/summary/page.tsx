@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 import {
   ChartRange,

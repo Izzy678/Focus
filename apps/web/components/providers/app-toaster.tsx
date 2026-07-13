@@ -1,8 +1,9 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { Toaster } from 'sonner';
 import { useEffect, useState } from 'react';
+import { Bounce, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export function AppToaster() {
   const { resolvedTheme } = useTheme();
@@ -13,11 +14,19 @@ export function AppToaster() {
   }, []);
 
   return (
-    <Toaster
+    <ToastContainer
       position="top-right"
-      richColors
-      closeButton
+      autoClose={4000}
+      hideProgressBar={false}
+      newestOnTop
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
       theme={mounted && resolvedTheme === 'dark' ? 'dark' : 'light'}
+      transition={Bounce}
+      limit={3}
     />
   );
 }
