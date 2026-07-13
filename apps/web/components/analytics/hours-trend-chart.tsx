@@ -79,28 +79,31 @@ export function HoursTrendChart({
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="border border-border bg-card">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-5 sm:px-6 sm:py-6">
         <div>
-          <h2 className="text-lg font-extrabold tracking-tight sm:text-xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Trend
+          </p>
+          <h2 className="mt-1.5 text-[clamp(1.35rem,2.4vw,1.75rem)] font-medium tracking-[-0.035em]">
             Planned vs actual
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1.5 text-[13px] text-muted-foreground">
             Hours across your last {Math.min(range, days.length)} active days. Click a bar
             to open that day.
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border border-border bg-background p-1">
+        <div className="flex items-center gap-px overflow-hidden border border-border">
           {([7, 14, 30] as ChartRange[]).map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => onRangeChange(value)}
               className={cn(
-                'rounded px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition',
+                'px-3 py-2 text-[12px] font-medium tabular-nums transition-colors',
                 range === value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  ? 'bg-foreground text-background'
+                  : 'bg-card text-muted-foreground hover:text-foreground',
               )}
             >
               {value}d
@@ -109,27 +112,29 @@ export function HoursTrendChart({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-sm bg-muted-foreground/45" aria-hidden />
-          Planned
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-sm bg-primary" aria-hidden />
-          Actual
-        </span>
+      <div className="px-5 pt-4 sm:px-6">
+        <div className="flex flex-wrap items-center gap-5 text-[12px] text-muted-foreground">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2 w-2 bg-muted-foreground/40" aria-hidden />
+            Planned
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2 w-2 bg-primary" aria-hidden />
+            Actual
+          </span>
+        </div>
       </div>
 
-      <div className="mt-4 h-64 w-full sm:h-72">
+      <div className="h-64 w-full px-2 pb-4 sm:h-72 sm:px-3 sm:pb-5">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
             barGap={2}
-            barCategoryGap="18%"
+            barCategoryGap="20%"
           >
             <CartesianGrid
-              strokeDasharray="3 3"
+              strokeDasharray="0"
               vertical={false}
               stroke="hsl(var(--border))"
             />
@@ -147,7 +152,7 @@ export function HoursTrendChart({
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
             />
             <Tooltip
-              cursor={{ fill: 'hsl(var(--muted) / 0.55)' }}
+              cursor={{ fill: 'hsl(var(--muted) / 0.45)' }}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) {
                   return null;
@@ -157,17 +162,19 @@ export function HoursTrendChart({
                   return null;
                 }
                 return (
-                  <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-md">
-                    <p className="font-bold text-foreground">{formatAxisLabel(row.date)}</p>
-                    <p className="mt-1 text-muted-foreground">
+                  <div className="border border-border bg-card px-3.5 py-2.5 text-[12px] shadow-[0_12px_32px_rgba(12,12,12,0.08)]">
+                    <p className="font-medium tracking-[-0.02em] text-foreground">
+                      {formatAxisLabel(row.date)}
+                    </p>
+                    <p className="mt-1.5 text-muted-foreground">
                       Planned:{' '}
-                      <span className="font-semibold text-foreground">
+                      <span className="font-medium tabular-nums text-foreground">
                         {formatMinutesToClock(row.plannedMinutes)}
                       </span>
                     </p>
                     <p className="text-muted-foreground">
                       Actual:{' '}
-                      <span className="font-semibold text-foreground">
+                      <span className="font-medium tabular-nums text-foreground">
                         {formatMinutesToClock(row.actualMinutes)}
                       </span>
                     </p>
@@ -179,8 +186,8 @@ export function HoursTrendChart({
               dataKey="plannedHours"
               name="Planned"
               fill="hsl(var(--muted-foreground) / 0.35)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={28}
+              radius={[2, 2, 0, 0]}
+              maxBarSize={26}
               cursor="pointer"
               onClick={(data) => {
                 const point = data as { date?: string; payload?: { date?: string } };
@@ -195,8 +202,8 @@ export function HoursTrendChart({
                   key={`planned-${entry.date}`}
                   fill={
                     entry.date === selectedDate
-                      ? 'hsl(var(--muted-foreground) / 0.55)'
-                      : 'hsl(var(--muted-foreground) / 0.3)'
+                      ? 'hsl(var(--muted-foreground) / 0.5)'
+                      : 'hsl(var(--muted-foreground) / 0.28)'
                   }
                 />
               ))}
@@ -205,8 +212,8 @@ export function HoursTrendChart({
               dataKey="actualHours"
               name="Actual"
               fill="hsl(var(--primary))"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={28}
+              radius={[2, 2, 0, 0]}
+              maxBarSize={26}
               cursor="pointer"
               onClick={(data) => {
                 const point = data as { date?: string; payload?: { date?: string } };
@@ -222,7 +229,7 @@ export function HoursTrendChart({
                   fill={
                     entry.date === selectedDate
                       ? 'hsl(var(--primary))'
-                      : 'hsl(var(--primary) / 0.65)'
+                      : 'hsl(var(--primary) / 0.62)'
                   }
                 />
               ))}
