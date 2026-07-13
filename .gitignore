@@ -16,6 +16,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Local product notes
+backlog.md
+
 # Editor
 .DS_Store
 .idea/
