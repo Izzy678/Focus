@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { AuthMarketingPanel } from '@/components/auth/auth-marketing-panel';
 import { AuthSplitLayout } from '@/components/auth/auth-split-layout';
 import { ClerkSignInPanel } from '@/components/auth/clerk-sign-in-panel';
+import { FocusWordmark } from '@/components/brand/focus-wordmark';
 
 export default async function SignInPage() {
   const { userId } = await auth();
@@ -13,19 +14,15 @@ export default async function SignInPage() {
 
   return (
     <AuthSplitLayout
-      mobileBrand={
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-          Focus<span className="text-primary">.</span>
-        </h1>
-      }
+      mobileBrand={<FocusWordmark href="/" />}
       leftPanel={
         <AuthMarketingPanel
-          heading="Reclaim your time through discipline."
-          body="A high-performance environment engineered for deep work. No distractions. No clutter. Just pure execution."
+          heading="Keep the promises you make to your calendar."
+          body="Focus turns a plan into a day you can honor. Make time visible, work one block at a time, and learn what your days are really made of."
           footer={
-            <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.24em] text-primary-foreground/70">
-              <span className="h-px w-12 bg-primary-foreground/50" />
-              <span>System status: optimal</span>
+            <div className="auth-marketing-footer flex items-center gap-4 text-[11px] font-medium uppercase tracking-[0.16em]">
+              <span className="auth-marketing-footer-rule h-px w-10" />
+              <span>A day with a shape</span>
             </div>
           }
         />

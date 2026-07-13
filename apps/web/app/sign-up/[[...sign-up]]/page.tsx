@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { AuthMarketingPanel } from '@/components/auth/auth-marketing-panel';
 import { AuthSplitLayout } from '@/components/auth/auth-split-layout';
 import { ClerkSignUpPanel } from '@/components/auth/clerk-sign-up-panel';
+import { FocusWordmark } from '@/components/brand/focus-wordmark';
 
 export default async function SignUpPage() {
   const { userId } = await auth();
@@ -13,29 +14,15 @@ export default async function SignUpPage() {
 
   return (
     <AuthSplitLayout
-      mobileBrand={
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-          Focus<span className="text-primary">.</span>
-        </h1>
-      }
+      mobileBrand={<FocusWordmark href="/" />}
       leftPanel={
         <AuthMarketingPanel
-          heading="Master your time, master your life."
-          body="Join disciplined professionals using a calm task system built for consistent daily execution."
+          eyebrow="Focus, for tomorrow"
+          heading="Tomorrow deserves a plan."
+          body="Start free. Give every important thing a home in time — then keep the block in front of you."
           footer={
-            <div className="flex gap-8">
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-primary-foreground">12k+</span>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/70">
-                  Active users
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-primary-foreground">4.9/5</span>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/70">
-                  User rating
-                </span>
-              </div>
+            <div className="auth-marketing-footer max-w-xs text-[14px] leading-6 tracking-[-0.01em]">
+              No contracts. A quieter day starts with the next window.
             </div>
           }
         />
