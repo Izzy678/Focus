@@ -66,56 +66,74 @@
 
 @layer components {
   .auth-layout {
+    background: #f8f8f7;
+  }
+
+  .dark .auth-layout {
     background: hsl(var(--background));
   }
 
+  /* Editorial dark panel — matches landing marketing sections */
   .auth-left-panel {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--primary)) 0%,
-        hsl(var(--brand-primary) / 0.82) 100%
-      );
+    background: #111;
+    color: rgba(255, 255, 255, 0.92);
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    box-shadow: inset 0 2px 0 hsl(225 58% 21% / 0.55);
+  }
+
+  /* Fixed light-on-dark tints — not theme tokens or non-scale Tailwind opacities */
+  .auth-marketing-eyebrow {
+    color: rgba(255, 255, 255, 0.58);
+  }
+
+  .auth-marketing-footer {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .auth-marketing-footer-rule {
+    background: rgba(255, 255, 255, 0.28);
   }
 
   .auth-left-panel::before {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: -1;
-    opacity: 0.15;
+    z-index: 0;
     pointer-events: none;
+    opacity: 0.9;
     background:
-      radial-gradient(circle at 80% 20%, hsl(var(--primary-foreground)), transparent 50%),
-      repeating-linear-gradient(
-        90deg,
-        transparent 0,
-        transparent 8.33%,
-        hsl(var(--primary-foreground) / 0.38) 8.33%,
-        hsl(var(--primary-foreground) / 0.38) 8.6%
-      );
+      radial-gradient(70% 55% at 85% 10%, rgba(37, 99, 235, 0.28), transparent 58%),
+      radial-gradient(50% 40% at 10% 90%, rgba(37, 99, 235, 0.1), transparent 55%);
   }
 
   .auth-left-panel::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
-    opacity: 0.28;
-    background:
-      linear-gradient(34deg, transparent 46%, hsl(var(--primary-foreground) / 0.32) 48%, transparent 50%),
-      linear-gradient(148deg, transparent 56%, hsl(var(--primary-foreground) / 0.22) 58%, transparent 60%),
-      linear-gradient(198deg, transparent 74%, hsl(var(--primary-foreground) / 0.24) 76%, transparent 78%),
-      radial-gradient(80% 45% at 50% 76%, hsl(216 74% 40% / 0.45), transparent 70%),
-      radial-gradient(120% 80% at 58% 18%, hsl(221 94% 58% / 0.35), transparent 68%);
+    opacity: 0.35;
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent 72px,
+        rgba(255, 255, 255, 0.035) 72px,
+        rgba(255, 255, 255, 0.035) 73px
+      );
+  }
+
+  .auth-left-panel > * {
+    position: relative;
+    z-index: 1;
   }
 
   .auth-right-panel {
-    background: hsl(var(--card));
+    background: #f8f8f7;
+  }
+
+  .dark .auth-right-panel {
+    background: hsl(var(--background));
   }
 }
