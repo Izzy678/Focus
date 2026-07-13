@@ -50,7 +50,7 @@ function SidebarNav({
   showClose,
 }: SidebarNavProps) {
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <div
         className={cn(
           'flex items-center gap-2',
@@ -115,7 +115,27 @@ function SidebarNav({
           );
         })}
       </nav>
-    </>
+
+      <div
+        className={cn(
+          'mt-auto border-t border-border pt-4',
+          collapsed ? 'flex justify-center' : 'flex items-center gap-3',
+        )}
+      >
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: 'h-8 w-8',
+            },
+          }}
+        />
+        {!collapsed ? (
+          <p className="min-w-0 truncate text-[12px] text-muted-foreground">
+            Account
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -251,7 +271,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <span className="sm:hidden">End</span>
               <span className="hidden sm:inline">End day</span>
             </Link>
-            <UserButton />
           </div>
         </header>
 
