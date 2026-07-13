@@ -63,6 +63,9 @@ function taskToDraft(task: Task): TaskDraft {
   };
 }
 
+const fieldClassName =
+  'mt-2 h-11 w-full border border-border bg-background px-3.5 text-[15px] font-medium tracking-[-0.01em] text-foreground outline-none transition-colors placeholder:font-normal placeholder:text-muted-foreground/70 focus:border-primary/40 disabled:opacity-60';
+
 function PlanPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -214,36 +217,34 @@ function PlanPageContent() {
   );
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 sm:gap-8 lg:grid-cols-[1fr_320px]">
-      <section className="space-y-5 sm:space-y-6">
-        <div className="space-y-2">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
-            Architecture Phase
+    <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_280px] lg:gap-10">
+      <section className="min-w-0 space-y-6 sm:space-y-8">
+        <header className="space-y-2 border-b border-border pb-5 sm:pb-6">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            {isEditing ? 'Edit block' : 'Plan'}
           </p>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            Daily Execution Plan
+          <h1 className="text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.05] tracking-[-0.045em]">
+            {isEditing ? 'Adjust the window' : 'Shape the day'}
           </h1>
-        </div>
+          <p className="max-w-xl text-[15px] leading-6 tracking-[-0.01em] text-muted-foreground">
+            Title, goals, then a fixed window. Tasks start and end from this schedule.
+          </p>
+        </header>
 
-        <form
-          onSubmit={onCreateTask}
-          className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8"
-        >
-          <div className="flex items-start justify-between gap-3">
+        <form onSubmit={onCreateTask} className="border border-border bg-card">
+          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-5 sm:px-7 sm:py-6">
             <div className="min-w-0">
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-                Focus.
-              </h2>
-              <p className="mt-1 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                {isEditing
-                  ? 'Editing upcoming task'
-                  : 'System Ready / High Performance Mode'}
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                {isEditing ? 'Upcoming task' : 'New block'}
               </p>
+              <h2 className="mt-1 text-[clamp(1.25rem,2.2vw,1.6rem)] font-medium tracking-[-0.035em]">
+                {isEditing ? 'Edit details' : 'Add to timeline'}
+              </h2>
             </div>
             <button
               type="button"
               onClick={() => (isEditing ? exitEditMode() : setDraft(buildDefaultDraft()))}
-              className="text-2xl leading-none text-muted-foreground transition hover:text-foreground"
+              className="grid h-9 w-9 place-items-center text-xl leading-none text-muted-foreground transition-colors hover:text-foreground"
               aria-label={isEditing ? 'Close editor' : 'Reset form'}
             >
               &times;
@@ -251,12 +252,16 @@ function PlanPageContent() {
           </div>
 
           {editLoading ? (
-            <p className="mt-4 text-sm text-muted-foreground">Loading task…</p>
+            <p className="border-b border-border px-5 py-4 text-sm text-muted-foreground sm:px-7">
+              Loading task…
+            </p>
           ) : null}
 
-          <div className="mt-8 space-y-5">
-            <label className="block text-xs font-black uppercase tracking-[0.2em] text-foreground">
-              Task Title
+          <div className="space-y-7 px-5 py-6 sm:px-7 sm:py-8">
+            <label className="block">
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Title
+              </span>
               <input
                 value={draft.title}
                 onChange={(event) =>
@@ -264,14 +269,72 @@ function PlanPageContent() {
                 }
                 required
                 disabled={editLoading}
-                placeholder="Specify technical objective..."
-                className="mt-2 h-12 w-full rounded-md border border-border bg-background px-4 text-base font-semibold placeholder:text-muted-foreground/70 disabled:opacity-60"
+                placeholder="What deserves this window?"
+                className={fieldClassName}
               />
             </label>
 
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-foreground">
-                Category selection
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Goals
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Optional outcomes for the block — keep them concrete.
+              </p>
+              <div className="mt-3 space-y-2.5">
+                {draft.goals.map((goal, index) => (
+                  <div key={`goal-${index}`} className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={goal}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          goals: current.goals.map((item, goalIndex) =>
+                            goalIndex === index ? event.target.value : item,
+                          ),
+                        }))
+                      }
+                      placeholder={`Goal ${index + 1}`}
+                      disabled={editLoading}
+                      className={cn(fieldClassName, 'mt-0')}
+                    />
+                    <button
+                      type="button"
+                      disabled={editLoading}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          goals:
+                            current.goals.length === 1
+                              ? ['']
+                              : current.goals.filter((_, goalIndex) => goalIndex !== index),
+                        }))
+                      }
+                      className="h-11 shrink-0 border border-border px-3.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 sm:w-auto"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={editLoading}
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    goals: [...current.goals, ''],
+                  }))
+                }
+                className="mt-3 text-[13px] font-medium text-primary transition-colors hover:text-primary/80 disabled:opacity-50"
+              >
+                + Add goal
+              </button>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Category
               </p>
               <div
                 className="mt-3 flex flex-wrap gap-2"
@@ -291,10 +354,10 @@ function PlanPageContent() {
                       }
                       disabled={editLoading}
                       className={cn(
-                        'rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition disabled:pointer-events-none disabled:opacity-50',
+                        'border px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition-colors disabled:pointer-events-none disabled:opacity-50',
                         selected
-                          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                          : 'bg-muted text-foreground hover:bg-muted/80',
+                          ? 'border-foreground bg-foreground text-background dark:border-foreground dark:bg-foreground dark:text-background'
+                          : 'border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground',
                       )}
                     >
                       {opt.pillLabel}
@@ -303,77 +366,21 @@ function PlanPageContent() {
                 })}
               </div>
             </div>
-
-            <div className="space-y-3">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-foreground">
-                Clear Goals
-              </p>
-              {draft.goals.map((goal, index) => (
-                <div key={`goal-${index}`} className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    value={goal}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        goals: current.goals.map((item, goalIndex) =>
-                          goalIndex === index ? event.target.value : item,
-                        ),
-                      }))
-                    }
-                    placeholder={`Goal ${index + 1}`}
-                    disabled={editLoading}
-                    className="h-12 w-full rounded-md border border-border bg-background px-4 text-sm placeholder:text-muted-foreground/70 disabled:opacity-60"
-                  />
-                  <button
-                    type="button"
-                    disabled={editLoading}
-                    onClick={() =>
-                      setDraft((current) => ({
-                        ...current,
-                        goals:
-                          current.goals.length === 1
-                            ? ['']
-                            : current.goals.filter((_, goalIndex) => goalIndex !== index),
-                      }))
-                    }
-                    className="h-12 shrink-0 rounded-md border border-border px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground disabled:opacity-50 sm:w-auto"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                disabled={editLoading}
-                onClick={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    goals: [...current.goals, ''],
-                  }))
-                }
-                className="h-10 rounded-md border border-border px-3 text-xs font-bold uppercase tracking-wider text-primary disabled:opacity-50"
-              >
-                Add Goal
-              </button>
-            </div>
           </div>
 
-          <div className="mt-8 grid gap-5 border-y border-border py-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-foreground">
-                Scheduled Window
-              </p>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                Pick exact start and end times. Tasks auto-start and auto-end from this
-                timeline.
-              </p>
-            </div>
+          <div className="border-t border-border px-5 py-6 sm:px-7 sm:py-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Window
+            </p>
+            <p className="mt-1 max-w-md text-[13px] leading-5 text-muted-foreground">
+              Exact start and end. Focus auto-starts and auto-ends from these times.
+            </p>
 
-            <div className="grid grid-cols-1 gap-3 rounded-xl bg-muted p-3 md:grid-cols-2">
-              <label className="rounded-md bg-background p-3">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="mt-5 grid grid-cols-1 gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
+              <label className="bg-card p-4">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   Start
-                </p>
+                </span>
                 <input
                   type="datetime-local"
                   required
@@ -383,78 +390,75 @@ function PlanPageContent() {
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, scheduledStart: event.target.value }))
                   }
-                  className="h-12 w-full rounded-md border border-border bg-background px-3 text-sm outline-none disabled:opacity-60"
+                  className="mt-2 h-11 w-full border-0 bg-transparent text-[15px] font-medium tabular-nums outline-none disabled:opacity-60"
                 />
               </label>
-              <label className="rounded-md bg-background p-3">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+              <label className="bg-card p-4">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   End
-                </p>
+                </span>
                 <input
                   type="datetime-local"
                   required
                   disabled={editLoading}
-                  min={draft.scheduledStart || (!isEditing ? toLocalInputValue(new Date()) : undefined)}
+                  min={
+                    draft.scheduledStart ||
+                    (!isEditing ? toLocalInputValue(new Date()) : undefined)
+                  }
                   value={draft.scheduledEnd}
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, scheduledEnd: event.target.value }))
                   }
-                  className="h-12 w-full rounded-md border border-border bg-background px-3 text-sm outline-none disabled:opacity-60"
+                  className="mt-2 h-11 w-full border-0 bg-transparent text-[15px] font-medium tabular-nums outline-none disabled:opacity-60"
                 />
               </label>
             </div>
           </div>
 
-          <div className="mt-6 rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
-            This task will automatically sequence into your Daily Execution Plan based on
-            the allocated time and current constraints.
-          </div>
-
-          <div className="mt-8 grid gap-3 md:grid-cols-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border px-5 py-5 sm:flex-row sm:justify-end sm:gap-3 sm:px-7">
             <button
               type="button"
               onClick={() => (isEditing ? exitEditMode() : setDraft(buildDefaultDraft()))}
-              className="h-11 rounded-md bg-muted text-sm font-bold text-foreground"
+              className="inline-flex h-10 items-center justify-center rounded-md px-4 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || editLoading || (Boolean(urlEditId) && !isEditing)}
-              className="h-11 rounded-md bg-primary text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-secondary px-5 text-[13px] font-medium text-secondary-foreground transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-60"
             >
               {saving
                 ? isEditing
-                  ? 'Saving...'
-                  : 'Adding...'
+                  ? 'Saving…'
+                  : 'Adding…'
                 : isEditing
                   ? 'Save changes'
-                  : 'Add to Timeline'}
+                  : 'Add to timeline'}
             </button>
           </div>
         </form>
       </section>
 
-      <aside className="h-fit rounded-2xl border border-slate-700/80 bg-slate-900 p-4 text-slate-100 dark:border-border dark:bg-card dark:text-card-foreground sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-200 dark:text-primary">
-          Focus Engine
+      <aside className="h-fit border border-border bg-[#111] p-6 text-white dark:border-border dark:bg-card dark:text-card-foreground sm:p-7">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45 dark:text-muted-foreground">
+          Today
         </p>
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:mt-4 sm:text-3xl">
-          Daily Load Factor
+        <h2 className="mt-3 text-[clamp(1.5rem,2.5vw,1.85rem)] font-medium leading-[1.05] tracking-[-0.04em]">
+          Planned load
         </h2>
-        <p className="mt-4 text-sm leading-6 text-slate-300 dark:text-muted-foreground">
-          Keep the plan realistic and weighted toward deep work outcomes. View your sequence
-          on Timeline.
+        <p className="mt-3 text-[13px] leading-5 text-white/55 dark:text-muted-foreground">
+          Keep the day honest. Deep work first, then review the sequence on Timeline.
         </p>
-        <div className="mt-6 sm:mt-8">
-          <p className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+        <div className="mt-8">
+          <p className="text-[clamp(2.75rem,5vw,3.5rem)] font-medium leading-none tracking-[-0.06em] tabular-nums">
             {loadingTotals ? '—' : hoursDisplay}
-            <span className="ml-1.5 text-xl font-semibold text-slate-400 dark:text-muted-foreground sm:ml-2 sm:text-2xl">
-              HRS
+            <span className="ml-1.5 text-[0.42em] tracking-[-0.03em] text-white/45 dark:text-muted-foreground">
+              hrs
             </span>
           </p>
-          <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-muted-foreground">
-            Planned hours today
+          <p className="mt-3 text-[12px] text-white/40 dark:text-muted-foreground">
+            Scheduled for today
           </p>
         </div>
       </aside>
