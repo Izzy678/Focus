@@ -165,6 +165,20 @@ function FocusPageContent() {
     return Math.max(0, Math.min(100, (elapsedSeconds / totalSeconds) * 100));
   }, [task, now]);
 
+  const windowLabel = useMemo(() => {
+    if (!task) {
+      return '';
+    }
+    const start = new Date(task.scheduledStart).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const end = new Date(task.scheduledEnd).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return `${start} – ${end}`;
+  }, [task]);
 
   async function onComplete() {
     if (!task) return;
@@ -195,94 +209,118 @@ function FocusPageContent() {
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading focus mode...</p>;
+    return <p className="text-sm text-muted-foreground">Loading focus…</p>;
   }
 
   if (!task) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground">No active task found.</p>
+      <div className="border border-border bg-card p-6">
+        <p className="text-[15px] text-muted-foreground">No active task found.</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8 sm:space-y-10">
       {task.status !== 'in_progress' ? (
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-            Scheduled Session
+        <section className="border border-border bg-card px-5 py-6 sm:px-7 sm:py-8">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Waiting
           </p>
-          <h2 className="mt-3 text-xl font-extrabold tracking-tight sm:text-2xl">{task.title}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This task starts at{' '}
-            {new Date(task.scheduledStart).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-            . The scheduler will move it to active automatically.
+          <h2 className="mt-3 text-[clamp(1.5rem,3vw,2rem)] font-medium leading-[1.05] tracking-[-0.04em]">
+            {task.title}
+          </h2>
+          <p className="mt-3 text-[15px] leading-6 tracking-[-0.01em] text-muted-foreground">
+            This block starts at{' '}
+            <span className="font-medium tabular-nums text-foreground">
+              {new Date(task.scheduledStart).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+            . The scheduler will open it automatically.
           </p>
+          <p className="mt-4 text-[13px] tabular-nums text-muted-foreground">{windowLabel}</p>
         </section>
       ) : null}
 
       {task.status === 'in_progress' || showCompletion ? (
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-card px-4 py-8 text-center sm:rounded-3xl sm:p-10">
-          <div className="mx-auto mb-6 aspect-square w-full max-w-[min(17rem,85vw)] rounded-full border-4 border-primary/30 p-3 sm:mb-8 sm:max-w-[18rem] sm:p-8 md:max-w-[20rem]">
-            <div className="flex h-full w-full items-center justify-center font-mono text-3xl font-black tracking-tight text-foreground tabular-nums sm:text-4xl md:text-5xl lg:text-6xl">
-              {formatSecondsAsHMS(remainingSeconds)}
-            </div>
+        <section className="border border-border bg-card px-5 py-10 text-center sm:px-8 sm:py-14">
+          <div className="mx-auto flex items-center justify-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            {!showCompletion ? (
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+                Now
+              </>
+            ) : (
+              'Session ended'
+            )}
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl md:text-3xl">{task.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {task.goals.length ? task.goals.join(' • ') : 'No goals set'}
+
+          <p className="mt-8 font-mono text-[clamp(2.75rem,10vw,4.5rem)] font-medium leading-none tracking-[-0.05em] text-foreground tabular-nums">
+            {formatSecondsAsHMS(remainingSeconds)}
           </p>
 
-          <div className="mx-auto mt-6 h-2 w-full max-w-xl overflow-hidden rounded-full bg-muted">
+          <h1 className="mx-auto mt-8 max-w-xl text-[clamp(1.5rem,3.2vw,2.25rem)] font-medium leading-[1.05] tracking-[-0.04em]">
+            {task.title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-lg text-[15px] leading-6 tracking-[-0.01em] text-muted-foreground">
+            {task.goals.length ? task.goals.join(' · ') : 'No goals set'}
+          </p>
+
+          <div className="mx-auto mt-8 h-1 w-full max-w-md overflow-hidden bg-primary/15">
             <div
-              className="h-full bg-primary transition-all"
+              className="h-full bg-primary transition-[width] duration-500 ease-out"
               style={{ width: `${showCompletion ? 100 : progress}%` }}
             />
           </div>
 
+          <p className="mt-3 text-[12px] tabular-nums text-muted-foreground">{windowLabel}</p>
+
           {task.status === 'in_progress' && !showCompletion ? (
-            <p className="mx-auto mt-8 max-w-md text-xs leading-relaxed text-muted-foreground">
-              This session follows your scheduled window. There is no pause or stop — stay in the
-              zone until time runs out.
+            <p className="mx-auto mt-8 max-w-md text-[13px] leading-5 text-muted-foreground">
+              This session follows your scheduled window. No pause — stay with it until the
+              block ends.
             </p>
           ) : null}
         </section>
       ) : null}
 
       {showCompletion ? (
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-            Session Concluded
+        <section className="border border-border bg-card px-5 py-6 sm:px-7 sm:py-8">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            Debrief
           </p>
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">Time&apos;s up.</h2>
-          <p className="mt-1 text-muted-foreground">Did you complete this task?</p>
+          <h2 className="mt-3 text-[clamp(1.75rem,3vw,2.35rem)] font-medium leading-[1.05] tracking-[-0.045em]">
+            Time&apos;s up.
+          </h2>
+          <p className="mt-2 text-[15px] text-muted-foreground">
+            Did you finish what this window asked for?
+          </p>
 
-          <button
-            onClick={onComplete}
-            disabled={saving}
-            className="mt-6 w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-60"
-            type="button"
-          >
-            Yes, completed
-          </button>
-          <button
-            onClick={onIncomplete}
-            disabled={saving}
-            className="mt-3 w-full rounded-md border border-destructive/40 px-4 py-3 text-sm font-bold uppercase tracking-wider text-destructive disabled:opacity-60"
-            type="button"
-          >
-            Not completed
-          </button>
+          <div className="mt-7 flex flex-col gap-2.5">
+            <button
+              onClick={onComplete}
+              disabled={saving}
+              className="inline-flex h-11 w-full items-center justify-center rounded-md bg-secondary text-[13px] font-medium text-secondary-foreground transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-60"
+              type="button"
+            >
+              Yes, completed
+            </button>
+            <button
+              onClick={onIncomplete}
+              disabled={saving}
+              className="inline-flex h-11 w-full items-center justify-center rounded-md border border-border text-[13px] font-medium text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive disabled:opacity-60"
+              type="button"
+            >
+              Not completed
+            </button>
+          </div>
         </section>
       ) : null}
     </div>
   );
 }
-
 
 export default function FocusPage() {
   return (
